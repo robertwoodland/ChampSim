@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <optional>
+#include <utility>
 
 #include "ooo_cpu.h"
 #include "tracereader.h"
@@ -18,6 +20,7 @@ namespace
 {
     int req_pipe[2];
     int resp_pipe[2];
+    std::optional<std::pair<uint64_t, uint8_t>> last_prediction{};
 } // namespace
 
 // Only for numerical types
@@ -37,6 +40,7 @@ void O3_CPU::initialize_branch_predictor() {
 
   std::function<void(int)> send = [fd = ::req_pipe[1]](int branch_ip){
     std::array<char, MSG_LENGTH> buff;
+    //std::cout << branch_ip << std::endl;
     buff[0] = PREDICT_REQ;
     memcpy(std::data(buff)+1, &branch_ip, sizeof(branch_ip));
     
@@ -51,17 +55,33 @@ void O3_CPU::initialize_branch_predictor() {
 
 uint8_t O3_CPU::predict_branch(uint64_t ip)
 {
-   char out = 0;
-   std::cout << "Predict " << ip << std::endl;
-   sleep(1);
+   char buff[9];
+   uint8_t out = 0;
+   uint64_t recieved_ip;
+
+   //std::cout << "Predict " << ip << std::endl;
     
-   if(read(resp_pipe[0], &out, 1) > 0){
-     return out - '0';
+   if(last_prediction){
+    if((*last_prediction).first == ip){
+      //std::cout << "Predict Recieved " << (*last_prediction).first << std::endl;
+      out = (*last_prediction).second;
+      last_prediction.reset();
+    }
    }else{
-     perror("Recieving prediction");
-   }
-   return 1;
-   
+    if(read(resp_pipe[0], buff, 9) > 0){
+      memcpy(&recieved_ip, &buff[1], 8);
+      if(recieved_ip == ip){ 
+        out = buff[0] - '0';
+        //std::cout << "Predict Recieved " << recieved_ip << std::endl;
+      }
+      else{
+        ::last_prediction = {recieved_ip, buff[0]-'0'};
+      }
+    }else{
+      perror("Recieving prediction");
+    }
+  }
+  return out;
 }
 
 

@@ -25,6 +25,7 @@
 #include <optional>
 #include <functional>
 #include <unistd.h>
+#include <iostream>
 
 #include "instruction.h"
 #include "util/detect.h"
@@ -137,16 +138,17 @@ ooo_model_instr bulk_tracereader<T, F>::operator()()
 
     // Set branch targets
     set_branch_targets(std::begin(instr_buffer), std::end(instr_buffer));
-  }
-  if(bsv::bsv_pipe_descriptor){
+
+    if(bsv::bsv_pipe_descriptor){
     std::for_each(std::begin(instr_buffer), std::end(instr_buffer), [](ooo_model_instr branch) {
-      if(!branch.is_branch){
+      if(branch.is_branch){
         bsv::send_branch_pred(branch.ip);
       }
     });
-    std::cout << "Done\n";
-    sleep(1);
+    //std::cout << "Done\n";
+    }
   }
+  
   
   auto retval = instr_buffer.front();
   instr_buffer.pop_front();

@@ -1,6 +1,6 @@
 import StmtFSM::*;
 
-import "BDPI" function Action branch_pred_resp(Bit#(8) taken);
+import "BDPI" function Action branch_pred_resp(Bit#(8) taken, Address ip);
 import "BDPI" function ActionValue#(Bit#(160)) recieve();
 import "BDPI" function Action set_file_descriptors;
 import "BDPI" function Action debug;
@@ -74,7 +74,7 @@ module mkTestbench(Empty);
               if (isPred(message)) seq
                 prediction <= predict(message.PredictReq);
                 if(debug) debugPredictionReq(message.PredictReq);
-                branch_pred_resp(prediction);  
+                branch_pred_resp(prediction, message.PredictReq);  
               endseq
               if (!isPred(message)) seq
                 update <= message.UpdateReq;

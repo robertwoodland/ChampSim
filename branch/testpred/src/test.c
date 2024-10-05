@@ -77,9 +77,13 @@ void recieve(unsigned int* res){
   }
 }
 
-void branch_pred_resp(char taken){
-  taken = taken + '0'; // Char form
-  write(pipe_write, &taken, 1);
+void branch_pred_resp(char taken, __uint64_t ip){
+  printf("Waiting to write\n");
+  char buff[9];
+  buff[0] = taken + '0';
+  memcpy(&buff[1], &ip, 8);
+  write(pipe_write, &buff, 9);
+  printf("Done waiting\n");
 }
 
 void debug(){

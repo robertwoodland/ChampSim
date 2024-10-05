@@ -1,5 +1,5 @@
 $date
-	Fri Oct  4 16:32:56 2024
+	Sat Oct  5 20:59:45 2024
 $end
 $version
 	Bluespec VCD dumper 2.1
@@ -35,55 +35,56 @@ $var reg 1 6 CAN_FIRE___me_check_7 $end
 $var reg 1 7 CAN_FIRE___me_check_8 $end
 $var reg 1 8 CAN_FIRE___me_check_9 $end
 $var reg 144 9 IF_TASK_recieve_7_BITS_1_TO_0_8_EQ_1_9_THEN_TA_ETC___d67 $end
-$var reg 1 : RST_N $end
-$var reg 72 ; TASK_recieve_7_BITS_129_TO_66_2_CONCAT_TASK_re_ETC___d64 $end
-$var reg 144 < TASK_recieve_7_BITS_145_TO_2___d60 $end
-$var reg 145 = TASK_recieve_7_BITS_1_TO_0_8_EQ_1_9_CONCAT_IF__ETC___d68 $end
-$var reg 144 > TASK_recieve_7_BITS_65_TO_2_1_CONCAT_TASK_reci_ETC___d66 $end
-$var reg 160 ? TASK_recieve___d57 $end
-$var reg 1 @ TASK_testplusargs___d37 $end
-$var reg 1 A WILL_FIRE_RL_action_l70c29 $end
-$var reg 1 B WILL_FIRE_RL_action_l71c9 $end
-$var reg 1 C WILL_FIRE_RL_action_l73c15 $end
-$var reg 1 D WILL_FIRE_RL_action_l75c28 $end
-$var reg 1 E WILL_FIRE_RL_action_l76c45 $end
-$var reg 1 F WILL_FIRE_RL_action_l77c33 $end
-$var reg 1 G WILL_FIRE_RL_action_l80c24 $end
-$var reg 1 H WILL_FIRE_RL_action_l81c38 $end
-$var reg 1 I WILL_FIRE_RL_auto_finish $end
-$var reg 1 J WILL_FIRE_RL_auto_start $end
-$var reg 1 K WILL_FIRE_RL_fsm_start $end
-$var reg 1 L WILL_FIRE_RL_restart $end
-$var reg 1 M WILL_FIRE_RL_start_reg__dreg_update $end
-$var reg 1 N WILL_FIRE_RL_state_every $end
-$var reg 1 O WILL_FIRE_RL_state_fired__dreg_update $end
-$var reg 1 P WILL_FIRE_RL_state_handle_abort $end
-$var reg 1 Q WILL_FIRE___me_check_10 $end
-$var reg 1 R WILL_FIRE___me_check_11 $end
-$var reg 1 S WILL_FIRE___me_check_5 $end
-$var reg 1 T WILL_FIRE___me_check_6 $end
-$var reg 1 U WILL_FIRE___me_check_7 $end
-$var reg 1 V WILL_FIRE___me_check_8 $end
-$var reg 1 W WILL_FIRE___me_check_9 $end
-$var reg 144 X message_1_BITS_143_TO_0___d88 $end
-$var reg 145 Y message___d41 $end
-$var reg 144 Z update___d90 $end
-$var reg 1 k abort $end
-$var reg 1 l debug $end
-$var reg 145 m message $end
-$var reg 8 n prediction $end
-$var reg 1 o running $end
-$var reg 1 p start_reg $end
-$var reg 1 q start_reg_1 $end
-$var reg 1 r start_reg_2 $end
-$var reg 1 s start_wire $end
-$var reg 1 t state_can_overlap $end
-$var reg 1 u state_fired $end
-$var reg 1 v state_fired_1 $end
-$var reg 4 w state_mkFSMstate $end
-$var reg 1 x state_overlap_pw $end
-$var reg 1 y state_set_pw $end
-$var reg 144 z update $end
+$var reg 64 : IF_message_1_BIT_144_2_THEN_message_1_BITS_63__ETC___d76 $end
+$var reg 1 ; RST_N $end
+$var reg 72 < TASK_recieve_7_BITS_129_TO_66_2_CONCAT_TASK_re_ETC___d64 $end
+$var reg 144 = TASK_recieve_7_BITS_145_TO_2___d60 $end
+$var reg 145 > TASK_recieve_7_BITS_1_TO_0_8_EQ_1_9_CONCAT_IF__ETC___d68 $end
+$var reg 144 ? TASK_recieve_7_BITS_65_TO_2_1_CONCAT_TASK_reci_ETC___d66 $end
+$var reg 160 @ TASK_recieve___d57 $end
+$var reg 1 A TASK_testplusargs___d37 $end
+$var reg 1 B WILL_FIRE_RL_action_l70c29 $end
+$var reg 1 C WILL_FIRE_RL_action_l71c9 $end
+$var reg 1 D WILL_FIRE_RL_action_l73c15 $end
+$var reg 1 E WILL_FIRE_RL_action_l75c28 $end
+$var reg 1 F WILL_FIRE_RL_action_l76c45 $end
+$var reg 1 G WILL_FIRE_RL_action_l77c33 $end
+$var reg 1 H WILL_FIRE_RL_action_l80c24 $end
+$var reg 1 I WILL_FIRE_RL_action_l81c38 $end
+$var reg 1 J WILL_FIRE_RL_auto_finish $end
+$var reg 1 K WILL_FIRE_RL_auto_start $end
+$var reg 1 L WILL_FIRE_RL_fsm_start $end
+$var reg 1 M WILL_FIRE_RL_restart $end
+$var reg 1 N WILL_FIRE_RL_start_reg__dreg_update $end
+$var reg 1 O WILL_FIRE_RL_state_every $end
+$var reg 1 P WILL_FIRE_RL_state_fired__dreg_update $end
+$var reg 1 Q WILL_FIRE_RL_state_handle_abort $end
+$var reg 1 R WILL_FIRE___me_check_10 $end
+$var reg 1 S WILL_FIRE___me_check_11 $end
+$var reg 1 T WILL_FIRE___me_check_5 $end
+$var reg 1 U WILL_FIRE___me_check_6 $end
+$var reg 1 V WILL_FIRE___me_check_7 $end
+$var reg 1 W WILL_FIRE___me_check_8 $end
+$var reg 1 X WILL_FIRE___me_check_9 $end
+$var reg 144 Y message_1_BITS_143_TO_0___d88 $end
+$var reg 145 Z message___d41 $end
+$var reg 144 [ update___d90 $end
+$var reg 1 l abort $end
+$var reg 1 m debug $end
+$var reg 145 n message $end
+$var reg 8 o prediction $end
+$var reg 1 p running $end
+$var reg 1 q start_reg $end
+$var reg 1 r start_reg_1 $end
+$var reg 1 s start_reg_2 $end
+$var reg 1 t start_wire $end
+$var reg 1 u state_can_overlap $end
+$var reg 1 v state_fired $end
+$var reg 1 w state_fired_1 $end
+$var reg 4 x state_mkFSMstate $end
+$var reg 1 y state_overlap_pw $end
+$var reg 1 z state_set_pw $end
+$var reg 144 { update $end
 $upscope $end
 $upscope $end
 $enddefinitions $end
@@ -112,13 +113,13 @@ $enddefinitions $end
 17
 18
 b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 9
-0:
-b101010101010101010101010101010101010101010101010101010101010101010101010 ;
-b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 <
+b0 :
+0;
+b101010101010101010101010101010101010101010101010101010101010101010101010 <
 b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 =
 b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 >
-b1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 ?
-0@
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 ?
+b1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 @
 0A
 0B
 0C
@@ -131,35 +132,36 @@ b1010101010101010101010101010101010101010101010101010101010101010101010101010101
 0J
 0K
 0L
-1M
+0M
 1N
 1O
-0P
-1Q
+1P
+0Q
 1R
 1S
 1T
 1U
 1V
 1W
-b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 X
+1X
 b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 Y
 b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 Z
-xk
-0l
-b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 m
-b0 n
-0o
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 [
+xl
+0m
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 n
+b0 o
 0p
 0q
-xr
+0r
 xs
-1t
-0u
-xv
-b0 w
-0x
+xt
+1u
+0v
+xw
+b0 x
 0y
-b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 z
+0z
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 {
 1+
-1J
+1K
