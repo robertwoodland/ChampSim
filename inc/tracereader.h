@@ -22,12 +22,21 @@
 #include <memory>
 #include <numeric>
 #include <string>
+#include <optional>
+#include <functional>
+#include <unistd.h>
 
 #include "instruction.h"
 #include "util/detect.h"
 
 namespace champsim
 {
+
+  namespace bsv {
+    extern std::optional<int> bsv_pipe_descriptor;
+    extern std::function<void(int)> send_branch_pred;
+  };
+
 class tracereader
 {
   static uint64_t instr_unique_id;
@@ -96,6 +105,7 @@ public:
 };
 
 ooo_model_instr apply_branch_target(ooo_model_instr branch, const ooo_model_instr& target);
+void enable_ahead_predictions(int fd, std::function<void(int)> f);
 
 template <typename It>
 void set_branch_targets(It begin, It end)
@@ -106,7 +116,7 @@ void set_branch_targets(It begin, It end)
 
 template <typename T, typename F>
 ooo_model_instr bulk_tracereader<T, F>::operator()()
-{
+{ 
   if (std::size(instr_buffer) <= refresh_thresh) {
     std::array<T, buffer_size - refresh_thresh> trace_read_buf;
     std::array<char, std::size(trace_read_buf) * sizeof(T)> raw_buf;
@@ -128,7 +138,16 @@ ooo_model_instr bulk_tracereader<T, F>::operator()()
     // Set branch targets
     set_branch_targets(std::begin(instr_buffer), std::end(instr_buffer));
   }
-
+  if(bsv::bsv_pipe_descriptor){
+    std::for_each(std::begin(instr_buffer), std::end(instr_buffer), [](ooo_model_instr branch) {
+      if(!branch.is_branch){
+        bsv::send_branch_pred(branch.ip);
+      }
+    });
+    std::cout << "Done\n";
+    sleep(1);
+  }
+  
   auto retval = instr_buffer.front();
   instr_buffer.pop_front();
 
