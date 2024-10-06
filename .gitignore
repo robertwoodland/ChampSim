@@ -1,5 +1,9 @@
 .csconfig/
 _configuration.mk
+branch/testpred/src/Build/build_bsim
+branch/testpred/src/Build/dump.vcd
+branch/testpred/src/Build/mkTestbench_bsim
+
 
 **/__pycache__/
 *.pyc
