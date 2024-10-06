@@ -11,12 +11,15 @@
 #include "ooo_cpu.h"
 #include "tracereader.h"
 
-#include "include/types.h"
-
+#define ENV_FIFO_IN "IN"
+#define ENV_FIFO_OUT "OUT"
+#define MSG_LENGTH 19
+#define PREDICT_REQ 1
+#define UPDATE_REQ 2
 #define SCRIPT_LOCATION "/home/katy/project/Predictors/ChampSim/branch/testpred/src/Build/script.sh"
 
 #ifndef DEBUG
-#define DEBUG 1
+#define DEBUG 0
 #endif
 
 #define debug_printf(fmt, ...) \
@@ -37,7 +40,6 @@ namespace
     // Debug
     u_int64_t count = 0;
 
-    uint64_t since_prefetch = 0;
     uint64_t total_prefetched = 0;
     uint64_t last_recieved;
     
@@ -95,7 +97,7 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
    }else{
     
     debug_printf("total prefetch: %ld, since prefetch: %ld\n", total_prefetched, count);
-    if (poll(&to_poll, 1, 0)==1 || total_prefetched > count) {
+    if (total_prefetched > count) {
       if(read(resp_pipe[0], buff, 9) > 0){
         memcpy(&recieved_ip, &buff[1], 8);
         if(recieved_ip == ip){

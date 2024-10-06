@@ -1,1 +1,3 @@
 * text=auto
+*.o binary
+*.sh text eol=lf
