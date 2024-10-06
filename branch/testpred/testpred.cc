@@ -10,12 +10,8 @@
 
 #include "ooo_cpu.h"
 #include "tracereader.h"
+#include "include/types.h"
 
-#define ENV_FIFO_IN "IN"
-#define ENV_FIFO_OUT "OUT"
-#define MSG_LENGTH 19
-#define PREDICT_REQ 1
-#define UPDATE_REQ 2
 #define SCRIPT_LOCATION "/home/katy/project/Predictors/ChampSim/branch/testpred/src/Build/script.sh"
 
 #ifndef DEBUG
@@ -92,7 +88,7 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
       debug_printf("Prediction Recieved %ld\n", ip);
       out = (*last_prediction).second;
       last_prediction.reset();
-      count++; last_recieved = ip;
+      count++; last_recieved = ip;      
     }
    }else{
     
