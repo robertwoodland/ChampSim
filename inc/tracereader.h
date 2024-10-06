@@ -39,6 +39,7 @@ namespace champsim
     extern uint64_t* total_prefetched;
   };
 
+
 class tracereader
 {
   static uint64_t instr_unique_id;
