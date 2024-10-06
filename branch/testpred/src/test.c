@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include "types.h"
 
 int pipe_read;
@@ -61,29 +62,34 @@ void branch_update_req(unsigned int* res, unsigned char* buff){
 
 // 2 bits
 void recieve(unsigned int* res){
+  
   unsigned char buff[MSG_LENGTH];
   int num = 0;
   //sleep(1);
   if((num = read(pipe_read, buff, MSG_LENGTH)) > 0){
     if(buff[0] == PREDICT_REQ){
+      //printf("Recieving Pred\n");
       res[0] = PREDICT_REQ;  
       branch_pred_req(res, &buff[1]);
     }else if(buff[0] == UPDATE_REQ){
+      //printf("Recieving Update\n");
       res[0] = UPDATE_REQ;
       branch_update_req(res, &buff[1]);
     }else{
       fprintf(stderr, "Recieving invalid data");
     }
+  }else{
+    perror("Error reading data\n");
   }
 }
 
 void branch_pred_resp(char taken, __uint64_t ip){
-  printf("Waiting to write\n");
+  //printf("Waiting to write %ld\n", ip);
   char buff[9];
   buff[0] = taken + '0';
   memcpy(&buff[1], &ip, 8);
   write(pipe_write, &buff, 9);
-  printf("Done waiting\n");
+  //printf("Done waiting\n");
 }
 
 void debug(){

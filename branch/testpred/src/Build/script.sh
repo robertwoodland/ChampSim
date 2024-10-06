@@ -9,7 +9,7 @@ package require Bluesim
 
 
 Bluesim::sim load /home/katy/project/Predictors/ChampSim/branch/testpred/src/Build/mkTestbench_bsim.so mkTestbench
-#Bluesim::sim arg "DEBUG"
+# Bluesim::sim arg "DEBUG"
 
 
 #Bluesim::sim arg "OUT=$outfd"

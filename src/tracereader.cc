@@ -27,11 +27,13 @@ namespace champsim
 uint64_t tracereader::instr_unique_id = 0;
 
 std::optional<int> bsv::bsv_pipe_descriptor = {};
-std::function<void(int)> bsv::send_branch_pred = nullptr;
+std::function<void(uint64_t)> bsv::send_branch_pred = nullptr;
+uint64_t* bsv::total_prefetched = nullptr;
 
-void enable_ahead_predictions(int fd, std::function<void(int)> f) {
+void enable_ahead_predictions(int fd, std::function<void(int)> f,uint64_t* total_prefetched_ref) {
     bsv::bsv_pipe_descriptor = fd;
     bsv::send_branch_pred = f;
+    bsv::total_prefetched = total_prefetched_ref; 
 }
 
 
