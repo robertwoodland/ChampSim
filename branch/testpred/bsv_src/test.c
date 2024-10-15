@@ -65,7 +65,6 @@ void recieve(unsigned int* res){
   
   unsigned char buff[MSG_LENGTH];
   int num = 0;
-  //sleep(1);
   if((num = read(pipe_read, buff, MSG_LENGTH)) > 0){
     if(buff[0] == PREDICT_REQ){
       //printf("Recieving Pred\n");

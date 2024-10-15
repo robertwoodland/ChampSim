@@ -35,7 +35,7 @@ namespace champsim
 
   namespace bsv {
     extern std::optional<int> bsv_pipe_descriptor;
-    extern std::function<void(uint64_t)> send_branch_pred;
+    extern std::function<void(uint64_t, uint64_t, uint8_t, uint8_t)> send_branch_pred;
     extern uint64_t* total_prefetched;
   };
 
@@ -108,7 +108,7 @@ public:
 };
 
 ooo_model_instr apply_branch_target(ooo_model_instr branch, const ooo_model_instr& target);
-void enable_ahead_predictions(int fd, std::function<void(int)> f, uint64_t* total_prefetched);
+void enable_ahead_predictions(int fd, std::function<void(uint64_t, uint64_t, uint8_t, uint8_t)> f, uint64_t* total_prefetched);
 
 template <typename It>
 void set_branch_targets(It begin, It end)
@@ -144,8 +144,8 @@ ooo_model_instr bulk_tracereader<T, F>::operator()()
     if(bsv::bsv_pipe_descriptor){
       //*bsv::total_prefetched = 0;
       std::for_each(std::begin(instr_buffer), std::end(instr_buffer), [](ooo_model_instr branch) {
-        if(branch.is_branch){
-          bsv::send_branch_pred(branch.ip);
+        if(branch.is_branch && branch.branch_type == BRANCH_CONDITIONAL){
+          bsv::send_branch_pred(branch.ip, branch.branch_target, branch.branch_taken, branch.branch_type);
         }
       });
     //std::cout << "Done\n";

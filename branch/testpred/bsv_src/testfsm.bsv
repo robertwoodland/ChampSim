@@ -1,4 +1,6 @@
 import StmtFSM::*;
+import BrPred::*;
+import Predictor::*;
 
 import "BDPI" function Action branch_pred_resp(Bit#(8) taken, Address ip);
 import "BDPI" function ActionValue#(Bit#(160)) recieve();
@@ -6,6 +8,24 @@ import "BDPI" function Action set_file_descriptors;
 import "BDPI" function Action debug;
 
 typedef UInt#(64) Address;
+
+
+/*
+
+interface DirPred#(type trainInfoT);
+    method ActionValue#(DirPredResult#(trainInfoT)) pred;
+endinterface
+
+interface DirPredictor#(type trainInfoT);
+    method Action nextPc(Addr nextPc);
+    interface Vector#(SupSize, DirPred#(trainInfoT)) pred;
+    method Action update(Bool taken, trainInfoT train, Bool mispred);
+    method Action flush;
+    method Bool flush_done;
+endinterface
+
+
+*/
 
 typedef struct {
     UInt#(64) ip;
@@ -22,8 +42,21 @@ typedef union tagged{
 (* synthesize *)
 module mkTestbench(Empty);
     
-    function Bit#(8) predict(Address ip);
-      return 8'd1;
+
+    Reg#(Bit#(8)) prediction <- mkReg(0);
+    Reg#(Message) message <- mkReg(?);
+    Reg#(Bool) debug <- mkReg(?);
+    let predictor <- mkDirPredictor;
+    Reg#(DirPredResult#(DirPredTrainInfo)) pendingTrainInfo <- mkReg(DirPredResult{taken: False, train: ?});
+      
+    function ActionValue#(DirPredResult#(DirPredTrainInfo)) predict(Address ip);
+      return predictor.pred[0].pred;
+    endfunction
+
+    function Action update(BranchUpdateInfo updateInfo);
+      // Forces in order updates pretty much
+      let branch_taken = updateInfo.taken == 1;
+      return predictor.update(branch_taken, pendingTrainInfo.train, branch_taken != pendingTrainInfo.taken);
     endfunction
 
     function BranchUpdateInfo convertUpdate(Bit#(160) b);
@@ -62,23 +95,23 @@ module mkTestbench(Empty);
       return x;
     endfunction
 
-    Reg#(BranchUpdateInfo) update <- mkReg(?);
-    Reg#(Bit#(8)) prediction <- mkReg(0);
-    Reg#(Message) message <- mkReg(?);
-    Reg#(Bool) debug <- mkReg(?);
+    //Reg#(BranchUpdateInfo) update <- mkReg(?);
+
+
     Stmt stmt = seq 
         set_file_descriptors;
         action let a <- $test$plusargs("DEBUG"); debug <= a; endaction
             while(True) seq
               action let a <- recieve; message <= convertToMessage(a); endaction
               if (isPred(message)) seq
-                prediction <= predict(message.PredictReq);
+                predictor.nextPc(pack(message.PredictReq));
+                action let a <- predict(message.PredictReq); pendingTrainInfo <= a; endaction
                 if(debug) debugPredictionReq(message.PredictReq);
-                branch_pred_resp(prediction, message.PredictReq);  
+                branch_pred_resp({7'b0000000,pack(pendingTrainInfo.taken)}, message.PredictReq);
               endseq
               if (!isPred(message)) seq
-                update <= message.UpdateReq;
-                if(debug) debugUpdate(update);
+                update(message.UpdateReq);
+                if(debug) debugUpdate(message.UpdateReq);
               endseq
             endseq
             /*while(True) seq
@@ -87,6 +120,8 @@ module mkTestbench(Empty);
             endseq*/
         //my_display(b);
     endseq;
+
+    
 
   mkAutoFSM(stmt);
 endmodule

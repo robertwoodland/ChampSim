@@ -23,7 +23,7 @@ PL = /opt/tools/bsc/latest/lib/Libraries/
 BSC_COMP_FLAGS = -elab -keep-fires -aggressive-conditions -no-warn-action-shadowing
 INCLUDE = $(TOPDIR)/include
 BSC_LINK_FLAGS = -keep-fires
-BSC_PATHS = -p $(DISTRO):$(PL)
+BSC_PATHS = -p $(DISTRO):$(DISTRO)/bsv_include:$(DISTRO)/TourPredictor:$(PL)
 
 .PHONY: help
 help:
