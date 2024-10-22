@@ -28,7 +28,7 @@ include _configuration.mk
 ifdef gold_standard_testing_predictor_directory
 all_execs: make_gold_standard $(filter-out $(test_main_name), $(executable_name))
 else
-all: $(filter-out $(test_main_name), $(executable_name))
+all_execs: $(filter-out $(test_main_name), $(executable_name))
 endif
 
 make_gold_standard: 	
