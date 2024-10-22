@@ -1,3 +1,3 @@
 {
-    "branch_predictor": "testpred"
+    "branch_predictor": "gold_standard"
 }

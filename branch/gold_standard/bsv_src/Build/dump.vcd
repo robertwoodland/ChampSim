@@ -1,0 +1,362 @@
+$date
+	Tue Oct 22 20:32:00 2024
+$end
+$version
+	Bluespec VCD dumper 2.1
+$end
+$timescale
+	1 us
+$end
+$scope module main $end
+$scope module top $end
+$var reg 1 ! CLK $end
+$var reg 1 ! CLK $end
+$var reg 1 " CAN_FIRE_RL_action_l102c29 $end
+$var reg 1 # CAN_FIRE_RL_action_l103c9 $end
+$var reg 1 $ CAN_FIRE_RL_action_l105c15 $end
+$var reg 1 % CAN_FIRE_RL_action_l107c26 $end
+$var reg 1 & CAN_FIRE_RL_action_l108c17 $end
+$var reg 1 ' CAN_FIRE_RL_action_l109c45 $end
+$var reg 1 ( CAN_FIRE_RL_action_l110c33 $end
+$var reg 1 ) CAN_FIRE_RL_action_l113c23 $end
+$var reg 1 * CAN_FIRE_RL_action_l114c38 $end
+$var reg 1 + CAN_FIRE_RL_auto_finish $end
+$var reg 1 , CAN_FIRE_RL_auto_start $end
+$var reg 1 - CAN_FIRE_RL_fsm_start $end
+$var reg 1 . CAN_FIRE_RL_restart $end
+$var reg 1 / CAN_FIRE_RL_start_reg__dreg_update $end
+$var reg 1 0 CAN_FIRE_RL_state_every $end
+$var reg 1 1 CAN_FIRE_RL_state_fired__dreg_update $end
+$var reg 1 2 CAN_FIRE_RL_state_handle_abort $end
+$var reg 1 3 CAN_FIRE___me_check_10 $end
+$var reg 1 4 CAN_FIRE___me_check_11 $end
+$var reg 1 5 CAN_FIRE___me_check_12 $end
+$var reg 1 6 CAN_FIRE___me_check_5 $end
+$var reg 1 7 CAN_FIRE___me_check_6 $end
+$var reg 1 8 CAN_FIRE___me_check_7 $end
+$var reg 1 9 CAN_FIRE___me_check_8 $end
+$var reg 1 : CAN_FIRE___me_check_9 $end
+$var reg 144 ; IF_TASK_recieve_7_BITS_1_TO_0_8_EQ_1_9_THEN_TA_ETC___d67 $end
+$var reg 8 < IF_message_1_BIT_144_2_THEN_DONTCARE_ELSE_mess_ETC___d94 $end
+$var reg 1 = RST_N $end
+$var reg 72 > TASK_recieve_7_BITS_129_TO_66_2_CONCAT_TASK_re_ETC___d64 $end
+$var reg 144 ? TASK_recieve_7_BITS_145_TO_2___d60 $end
+$var reg 145 @ TASK_recieve_7_BITS_1_TO_0_8_EQ_1_9_CONCAT_IF__ETC___d68 $end
+$var reg 144 A TASK_recieve_7_BITS_65_TO_2_1_CONCAT_TASK_reci_ETC___d66 $end
+$var reg 160 B TASK_recieve___d57 $end
+$var reg 1 C TASK_testplusargs___d37 $end
+$var reg 1 D WILL_FIRE_RL_action_l102c29 $end
+$var reg 1 E WILL_FIRE_RL_action_l103c9 $end
+$var reg 1 F WILL_FIRE_RL_action_l105c15 $end
+$var reg 1 G WILL_FIRE_RL_action_l107c26 $end
+$var reg 1 H WILL_FIRE_RL_action_l108c17 $end
+$var reg 1 I WILL_FIRE_RL_action_l109c45 $end
+$var reg 1 J WILL_FIRE_RL_action_l110c33 $end
+$var reg 1 K WILL_FIRE_RL_action_l113c23 $end
+$var reg 1 L WILL_FIRE_RL_action_l114c38 $end
+$var reg 1 M WILL_FIRE_RL_auto_finish $end
+$var reg 1 N WILL_FIRE_RL_auto_start $end
+$var reg 1 O WILL_FIRE_RL_fsm_start $end
+$var reg 1 P WILL_FIRE_RL_restart $end
+$var reg 1 Q WILL_FIRE_RL_start_reg__dreg_update $end
+$var reg 1 R WILL_FIRE_RL_state_every $end
+$var reg 1 S WILL_FIRE_RL_state_fired__dreg_update $end
+$var reg 1 T WILL_FIRE_RL_state_handle_abort $end
+$var reg 1 U WILL_FIRE___me_check_10 $end
+$var reg 1 V WILL_FIRE___me_check_11 $end
+$var reg 1 W WILL_FIRE___me_check_12 $end
+$var reg 1 X WILL_FIRE___me_check_5 $end
+$var reg 1 Y WILL_FIRE___me_check_6 $end
+$var reg 1 Z WILL_FIRE___me_check_7 $end
+$var reg 1 [ WILL_FIRE___me_check_8 $end
+$var reg 1 \ WILL_FIRE___me_check_9 $end
+$var reg 145 ] message___d41 $end
+$var reg 64 ^ nextPc__h26306 $end
+$var reg 1 _ pendingTrainInfo_6_BIT_34___d87 $end
+$var reg 35 ` pendingTrainInfo___d86 $end
+$var reg 1 q abort $end
+$var reg 1 r debug $end
+$var reg 145 s message $end
+$var reg 35 t pendingTrainInfo $end
+$var reg 8 u prediction $end
+$var reg 1 v running $end
+$var reg 1 w start_reg $end
+$var reg 1 x start_reg_1 $end
+$var reg 1 y start_reg_2 $end
+$var reg 1 z start_wire $end
+$var reg 1 { state_can_overlap $end
+$var reg 1 | state_fired $end
+$var reg 1 } state_fired_1 $end
+$var reg 4 ~ state_mkFSMstate $end
+$var reg 1 "! state_overlap_pw $end
+$var reg 1 "" state_set_pw $end
+$scope module predictor_m $end
+$var reg 1 ! CLK $end
+$var reg 1 "# CAN_FIRE_RL_canonGlobalHist $end
+$var reg 1 "$ CAN_FIRE_RL_predCnt_canon $end
+$var reg 1 "% CAN_FIRE_RL_predRes_canon $end
+$var reg 1 "& CAN_FIRE_flush $end
+$var reg 1 "' CAN_FIRE_flush_done $end
+$var reg 1 "( CAN_FIRE_nextPc $end
+$var reg 1 ") CAN_FIRE_pred_0_pred $end
+$var reg 1 "* CAN_FIRE_update $end
+$var reg 1 "+ IF_predCnt_lat_0_whas_THEN_IF_predCnt_lat_0_wh_ETC___d8 $end
+$var reg 1 ", IF_predRes_lat_0_whas__3_THEN_IF_predRes_lat_0_ETC___d17 $end
+$var reg 1 "- RST_N $end
+$var reg 1 ". WILL_FIRE_RL_canonGlobalHist $end
+$var reg 1 "/ WILL_FIRE_RL_predCnt_canon $end
+$var reg 1 "0 WILL_FIRE_RL_predRes_canon $end
+$var reg 1 "1 WILL_FIRE_flush $end
+$var reg 1 "2 WILL_FIRE_nextPc $end
+$var reg 1 "3 WILL_FIRE_pred_0_pred $end
+$var reg 1 "4 WILL_FIRE_update $end
+$var reg 12 "5 curGHist__h2774 $end
+$var reg 1 "6 predCnt_dummy2_1_read____d21 $end
+$var reg 1 "7 predCnt_lat_0_whas____d4 $end
+$var reg 1 "8 predCnt_rl__h4503 $end
+$var reg 1 "9 predRes_dummy2_1_read____d19 $end
+$var reg 1 ": predRes_lat_0_whas____d13 $end
+$var reg 1 "; predRes_rl__h4967 $end
+$var reg 1 "< upd__h1705 $end
+$var reg 1 "= upd__h2734 $end
+$var reg 1 "> x_wget__h1888 $end
+$var reg 1 "? x_wget__h852 $end
+$var reg 1 "@ EN_flush $end
+$var reg 1 "A EN_nextPc $end
+$var reg 1 "B EN_pred_0_pred $end
+$var reg 1 "C EN_update $end
+$var reg 1 "D RDY_flush $end
+$var reg 1 "E RDY_flush_done $end
+$var reg 1 "F RDY_nextPc $end
+$var reg 1 "G RDY_pred_0_pred $end
+$var reg 1 "H RDY_update $end
+$var reg 1 "I flush_done $end
+$var reg 64 "J nextPc_nextPc $end
+$var reg 35 "K pred_0_pred $end
+$var reg 1 "L update_mispred $end
+$var reg 1 "M update_taken $end
+$var reg 34 "N update_train $end
+$var reg 1 "h globalTakenVec $end
+$var reg 64 "i pc_reg $end
+$var reg 1 "j predCnt_dummy2_0 $end
+$var reg 1 "k predCnt_dummy2_1 $end
+$var reg 1 "l predCnt_dummy_0_0 $end
+$var reg 1 "m predCnt_dummy_0_1 $end
+$var reg 1 "n predCnt_dummy_1_0 $end
+$var reg 1 "o predCnt_dummy_1_1 $end
+$var reg 1 "p predCnt_lat_0 $end
+$var reg 1 "q predCnt_lat_1 $end
+$var reg 1 "r predCnt_rl $end
+$var reg 1 "s predRes_dummy2_0 $end
+$var reg 1 "t predRes_dummy2_1 $end
+$var reg 1 "u predRes_dummy_0_0 $end
+$var reg 1 "v predRes_dummy_0_1 $end
+$var reg 1 "w predRes_dummy_1_0 $end
+$var reg 1 "x predRes_dummy_1_1 $end
+$var reg 1 "y predRes_lat_0 $end
+$var reg 1 "z predRes_lat_1 $end
+$var reg 1 "{ predRes_rl $end
+$var reg 1 "| useLocalVec $end
+$scope module gHistReg $end
+$var reg 1 ! CLK $end
+$var reg 1 "} CAN_FIRE_RL_m_canon_addHistory $end
+$var reg 1 "~ CAN_FIRE_RL_m_canon_redirect $end
+$var reg 1 #! CAN_FIRE_addHistory $end
+$var reg 1 #" CAN_FIRE_history $end
+$var reg 1 ## CAN_FIRE_redirect $end
+$var reg 1 #$ RST_N $end
+$var reg 1 #% WILL_FIRE_RL_m_canon_addHistory $end
+$var reg 1 #& WILL_FIRE_RL_m_canon_redirect $end
+$var reg 1 #' WILL_FIRE_addHistory $end
+$var reg 1 #( WILL_FIRE_redirect $end
+$var reg 12 #) _read__h52 $end
+$var reg 1 #* EN_addHistory $end
+$var reg 1 #+ EN_redirect $end
+$var reg 1 #, RDY_addHistory $end
+$var reg 1 #- RDY_history $end
+$var reg 1 #. RDY_redirect $end
+$var reg 1 #/ addHistory_num $end
+$var reg 1 #0 addHistory_taken $end
+$var reg 12 #1 history $end
+$var reg 12 #2 redirect_newHist $end
+$var reg 2 #6 m_addHist $end
+$var reg 12 #7 m_hist $end
+$var reg 12 #8 m_redirectHist $end
+$upscope $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+1!
+0"
+0#
+0$
+0%
+0&
+0'
+0(
+0)
+0*
+0+
+0,
+0-
+0.
+1/
+10
+11
+02
+13
+14
+15
+16
+17
+18
+19
+1:
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 ;
+b0 <
+0=
+b101010101010101010101010101010101010101010101010101010101010101010101010 >
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 ?
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 @
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 A
+b1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 B
+0C
+0D
+0E
+0F
+0G
+0H
+0I
+0J
+0K
+0L
+0M
+0N
+0O
+0P
+1Q
+1R
+1S
+0T
+1U
+1V
+1W
+1X
+1Y
+1Z
+1[
+1\
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 ]
+b0 ^
+0_
+b0 `
+xq
+0r
+b101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010 s
+b1010101010101010101010101010101010 t
+b0 u
+0v
+0w
+0x
+xy
+xz
+1{
+0|
+x}
+b0 ~
+0"!
+0""
+1"#
+1"$
+1"%
+0"&
+0"'
+1"(
+1")
+1"*
+0"+
+0",
+0"-
+1".
+1"/
+1"0
+0"1
+0"2
+0"3
+0"4
+b101010101010 "5
+1"6
+0"7
+0"8
+1"9
+0":
+0";
+0"<
+0"=
+0">
+0"?
+0"@
+0"A
+0"B
+0"C
+0"D
+0"E
+1"F
+1"G
+1"H
+0"I
+b0 "J
+b0 "K
+0"L
+0"M
+b0 "N
+1"h
+b1010101010101010101010101010101010101010101010101010101010101010 "i
+1"j
+1"k
+x"l
+x"m
+0"n
+x"o
+x"p
+0"q
+0"r
+1"s
+1"t
+x"u
+x"v
+0"w
+x"x
+x"y
+0"z
+0"{
+1"|
+1"}
+0"~
+1#!
+0#"
+1##
+0#$
+1#%
+0#&
+1#'
+0#(
+b101010101010 #)
+1#*
+0#+
+1#,
+0#-
+1#.
+0#/
+0#0
+b101010101010 #1
+b0 #2
+b0 #6
+b0 #7
+bx #8
+1,
+1N
+b0 "5
+b0 #)
+b0 #1
