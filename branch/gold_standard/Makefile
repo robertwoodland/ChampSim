@@ -28,7 +28,54 @@ PL = /opt/tools/bsc/latest/lib/Libraries/
 BSC_COMP_FLAGS = -elab -keep-fires -aggressive-conditions -no-warn-action-shadowing
 INCLUDE = $(TOPDIR)/include
 BSC_LINK_FLAGS = -keep-fires
-BSC_PATHS = -p $(BSV_SRC):$(TOPDIR)/bsv_include:$(PRED_DIR)/TourPredictor:$(PL)
+PREDICTOR ?= TourPredictor
+BSC_PATHS = -p $(BSV_SRC):$(TOPDIR)/bsv_include:$(PRED_DIR)/$(PREDICTOR):$(PL)
+
+
+
+BSIM_DIRS = -simdir $(SIM_DIR) -bdir $(SIM_DIR) -info-dir $(SIM_DIR)
+CFILE = $(BSV_SRC)/reciever.c
+BSIM_EXE = $(BUILD_DIR)/$(TOPMODULE)_bsim
+
+.PHONY: all_bsim
+all_bsim: full_clean  compile  link
+
+build_bsim:
+	mkdir -p $(BUILD_DIR)
+	mkdir  -p $(SIM_DIR)
+
+.PHONY: compile
+compile: build_bsim
+	@echo Compiling for Bluesim ...
+	bsc -u -sim $(BSIM_DIRS) $(BSC_COMP_FLAGS) $(BSC_PATHS) -g $(TOPMODULE)  $(TOPFILE)
+	@echo Compiling for Bluesim finished
+
+.PHONY: link
+link:
+	@echo Linking for Bluesim ...
+	bsc  -I $(INCLUDE) -e $(TOPMODULE) -sim -o $(BSIM_EXE) $(BSIM_DIRS) $(BSC_LINK_FLAGS) $(BSC_PATHS) \
+		$(CFILE)
+	@echo Linking for Bluesim finished
+
+
+.PHONY: default
+default:
+	all_bsim
+
+#.PHONY: simulate
+#simulate:
+#	@echo Bluesim simulation ...
+#	./$(BSIM_EXE)
+#	@echo Bluesim simulation finished
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR)/*
+
+.PHONY: full_clean
+full_clean:
+	rm -r -f  $(BUILD_DIR)
+
 
 .PHONY: help
 help:
@@ -58,43 +105,3 @@ help:
 	@echo ""
 	@echo "    clean               Delete intermediate files in build_bsim/ and build_v/ dirs"
 	@echo "    full_clean          Delete all but this Makefile"
-
-
-BSIM_DIRS = -simdir $(SIM_DIR) -bdir $(SIM_DIR) -info-dir $(SIM_DIR)
-CFILE = $(BSV_SRC)/reciever.c
-BSIM_EXE = $(BUILD_DIR)/$(TOPMODULE)_bsim
-
-.PHONY: all_bsim
-all_bsim: full_clean  compile  link
-
-build_bsim:
-	mkdir -p $(BUILD_DIR)
-	mkdir  -p $(SIM_DIR)
-
-.PHONY: compile
-compile: build_bsim
-	@echo Compiling for Bluesim ...
-	bsc -u -sim $(BSIM_DIRS) $(BSC_COMP_FLAGS) $(BSC_PATHS) -g $(TOPMODULE)  $(TOPFILE)
-	@echo Compiling for Bluesim finished
-
-.PHONY: link
-link:
-	@echo Linking for Bluesim ...
-	bsc  -I $(INCLUDE) -e $(TOPMODULE) -sim -o $(BSIM_EXE) $(BSIM_DIRS) $(BSC_LINK_FLAGS) $(BSC_PATHS) \
-		$(CFILE)
-	@echo Linking for Bluesim finished
-
-
-#.PHONY: simulate
-#simulate:
-#	@echo Bluesim simulation ...
-#	./$(BSIM_EXE)
-#	@echo Bluesim simulation finished
-
-.PHONY: clean
-clean:
-	rm -rf $(BUILD_DIR)/*
-
-.PHONY: full_clean
-full_clean:
-	rm -r -f  $(BUILD_DIR)

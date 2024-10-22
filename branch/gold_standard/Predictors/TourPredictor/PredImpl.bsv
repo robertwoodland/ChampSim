@@ -12,7 +12,7 @@ export TourGlobalHist;
 export TourTrainInfo(..);
 export TourGHistReg(..);
 export mkTourGHistReg;
-export mkTourPred;
+export mkPredImpl;
 export PCIndexSz;
 export PCIndex;
 
@@ -42,7 +42,7 @@ module mkTourGHistReg(TourGHistReg);
 endmodule
 
 (* synthesize *)
-module mkTourPred(DirPredictor#(TourTrainInfo));
+module mkPredImpl(DirPredictor#(TourTrainInfo));
     // local history: MSB is the latest branch
     RegFile#(PCIndex, TourLocalHist) localHistTab <- mkRegFileWCF(0, maxBound);
     // local sat counters

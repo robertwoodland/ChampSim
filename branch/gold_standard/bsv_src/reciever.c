@@ -59,7 +59,6 @@ void branch_update_req(unsigned int* res, unsigned char* buff){
   res[4] = ((ret.target & 0xD000000000000000) >> 30) | (ret.branch_type << 10) | (ret.taken << 2);
 }
 
-
 // 2 bits
 void recieve(unsigned int* res){
   
