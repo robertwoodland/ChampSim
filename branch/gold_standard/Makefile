@@ -29,7 +29,12 @@ BSC_COMP_FLAGS = -elab -keep-fires -aggressive-conditions -no-warn-action-shadow
 INCLUDE = $(TOPDIR)/include
 BSC_LINK_FLAGS = -keep-fires
 PREDICTOR ?= TourPredictor
-BSC_PATHS = -p $(BSV_SRC):$(TOPDIR)/bsv_include:$(PRED_DIR)/$(PREDICTOR):$(PL)
+BSC_PATHS = -p $(BSV_SRC):$(TOPDIR)/bsv_include:$(PRED_DIR)/$(PREDICTOR)/Bluespec:$(PL)
+
+
+TOP_FRAMEWORK_FILE ?= $(TOPDIR)/gold_standard.cc
+INCLUDE_GOLD_STANDARD ?= $(PRED_DIR)/$(PREDICTOR)/Model/$(PREDICTOR).hpp
+
 
 
 
@@ -38,7 +43,7 @@ CFILE = $(BSV_SRC)/reciever.c
 BSIM_EXE = $(BUILD_DIR)/$(TOPMODULE)_bsim
 
 .PHONY: all_bsim
-all_bsim: full_clean  compile  link
+all_bsim: full_clean  compile  link set_gold_standard
 
 build_bsim:
 	mkdir -p $(BUILD_DIR)
@@ -57,6 +62,11 @@ link:
 		$(CFILE)
 	@echo Linking for Bluesim finished
 
+.PHONY: set_gold_standard
+set_gold_standard:
+	test -f $(TOP_FRAMEWORK_FILE) && test -f $(INCLUDE_GOLD_STANDARD) && \
+		sed -i '1s|.*|#include "$(INCLUDE_GOLD_STANDARD)"|' $(TOP_FRAMEWORK_FILE)
+#include "include/bsv_predictor.hpp"
 
 .PHONY: default
 default:
