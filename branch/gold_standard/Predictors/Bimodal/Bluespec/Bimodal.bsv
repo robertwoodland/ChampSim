@@ -2,6 +2,12 @@ import BrPred::*;
 import RegFile::*;
 import Vector::*;
 
+export DirPredTrainInfo(..);
+export BimodalTrainInfo(..);
+export Entry;
+export PCIndex;
+export PCIndexSz;
+export mkBimodal;
 
 typedef 12 PCIndexSz;
 typedef Bit#(PCIndexSz) PCIndex;
@@ -14,7 +20,7 @@ typedef struct {
 
 typedef BimodalTrainInfo DirPredTrainInfo;
 
-module mkPredImpl(DirPredictor#(BimodalTrainInfo));
+module mkBimodal(DirPredictor#(BimodalTrainInfo));
     RegFile#(PCIndex, Entry) bimodal_table <- mkRegFileWCF(0, maxBound);
     Reg#(Addr) currentPc <- mkReg(?);
 

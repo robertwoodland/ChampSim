@@ -3,6 +3,7 @@
 
 TOPDIR ?= .
 BSV_SRC = $(TOPDIR)/bsv_src
+BSV_INCLUDE = $(TOPDIR)/bsv_include
 PRED_DIR ?= $(TOPDIR)/Predictors
 BUILD_DIR ?= $(TOPDIR)/Build
 SIM_DIR ?= $(BUILD_DIR)/build_bsim
@@ -29,10 +30,13 @@ BSC_COMP_FLAGS = -elab -keep-fires -aggressive-conditions -no-warn-action-shadow
 INCLUDE = $(TOPDIR)/include
 BSC_LINK_FLAGS = -keep-fires
 PREDICTOR ?= TourPredictor
-BSC_PATHS = -p $(BSV_SRC):$(TOPDIR)/bsv_include:$(PRED_DIR)/$(PREDICTOR)/Bluespec:$(PL)
+BSC_PATHS = -p $(BSV_SRC):$(BSV_INCLUDE):$(PRED_DIR)/$(PREDICTOR)/Bluespec:$(PL)
 
 
 TOP_FRAMEWORK_FILE ?= $(TOPDIR)/gold_standard.cc
+TOP_BSV_PREDICTOR_FILE ?= $(TOPDIR)/$(PRED_DIR)/$(PREDICTOR)/Bluespec/$(PREDICTOR).bsv
+DIR_PREDICTOR_INTERFACE_LOCATION ?= $(BSV_INCLUDE)/Predictor.bsv
+
 INCLUDE_GOLD_STANDARD ?= $(PRED_DIR)/$(PREDICTOR)/Model/$(PREDICTOR).hpp
 
 
@@ -42,8 +46,13 @@ BSIM_DIRS = -simdir $(SIM_DIR) -bdir $(SIM_DIR) -info-dir $(SIM_DIR)
 CFILE = $(BSV_SRC)/reciever.c
 BSIM_EXE = $(BUILD_DIR)/$(TOPMODULE)_bsim
 
+.PHONY: failure_check
+failure_check:
+	make all_bsim PREDICTOR=$(PREDICTOR) || make unset PREDICTOR=$(PREDICTOR)
+
+
 .PHONY: all_bsim
-all_bsim: full_clean  compile  link set_gold_standard
+all_bsim: full_clean  set_bsv_predictor compile  link unset set_gold_standard
 
 build_bsim:
 	mkdir -p $(BUILD_DIR)
@@ -66,11 +75,23 @@ link:
 set_gold_standard:
 	test -f $(TOP_FRAMEWORK_FILE) && test -f $(INCLUDE_GOLD_STANDARD) && \
 		sed -i '1s|.*|#include "$(INCLUDE_GOLD_STANDARD)"|' $(TOP_FRAMEWORK_FILE)
-#include "include/bsv_predictor.hpp"
+
+.PHONY: set_bsv_predictor
+set_bsv_predictor:
+		test -f $(DIR_PREDICTOR_INTERFACE_LOCATION) && test -f $(TOP_BSV_PREDICTOR_FILE) && \
+		sed -i 's/\*TO_SUBSTITUTE_FILE\*/$(PREDICTOR)/g' $(DIR_PREDICTOR_INTERFACE_LOCATION) && \
+		sed -i 's/\*TO_SUBSTITUTE_MODULE\*/mk$(PREDICTOR)/g' $(DIR_PREDICTOR_INTERFACE_LOCATION)
+		
+.PHONY: unset
+unset:
+	test -f $(DIR_PREDICTOR_INTERFACE_LOCATION) && test -f $(TOP_BSV_PREDICTOR_FILE) && \
+	sed -i 's/mk$(PREDICTOR)/\*TO_SUBSTITUTE_MODULE\*/g' $(DIR_PREDICTOR_INTERFACE_LOCATION) && \
+	sed -i 's/$(PREDICTOR)/\*TO_SUBSTITUTE_FILE\*/g' $(DIR_PREDICTOR_INTERFACE_LOCATION)
+	
 
 .PHONY: default
 default:
-	all_bsim
+	failure_check
 
 #.PHONY: simulate
 #simulate:
