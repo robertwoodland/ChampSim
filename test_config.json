@@ -1,3 +1,4 @@
 {
-    "gold_standard": "TourPredictor"
+    "gold_standard": "Bimodal",
+    "num_cores": 1
 }

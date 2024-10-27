@@ -1,6 +1,7 @@
 .csconfig/
 _configuration.mk
 branch/gold_standard/Build
+branch/gold_standard/Predictors/TourPredictor
 
 
 **/__pycache__/

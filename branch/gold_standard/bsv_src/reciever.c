@@ -86,7 +86,11 @@ void branch_pred_resp(char taken, __uint64_t ip){
   char buff[9];
   buff[0] = taken + '0';
   memcpy(&buff[1], &ip, 8);
-  write(pipe_write, &buff, 9);
+  int num_bytes =  write(pipe_write, &buff, 9);
+  if(num_bytes == -1){
+    perror("Failed to write to pipe");
+    exit(EXIT_FAILURE);
+  }
   //printf("Done waiting\n");
 }
 
