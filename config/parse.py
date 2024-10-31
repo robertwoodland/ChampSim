@@ -216,7 +216,6 @@ def parse_normalized(cores, caches, ptws, pmem, vmem, merged_configs, branch_con
             'btb': util.combine_named(*(c['_btb_data'] for c in cores), btb_context.find_all())
             }
 
-
     if compile_all_modules:
         modules_to_compile = [*set(itertools.chain(*(d.keys() for d in module_info.values())))]
     else:
