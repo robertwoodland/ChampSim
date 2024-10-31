@@ -72,7 +72,7 @@ namespace gold_standard {
     uint8_t predict_branch(uint64_t ip){
       auto resp = impl_predict_branch(ip);
       last_debug_entry = resp.second;
-      return impl_predict_branch(ip).first;
+      return resp.first;
     }; 
     #else
     uint8_t predict_branch(uint64_t ip){

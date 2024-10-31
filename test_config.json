@@ -1,6 +1,6 @@
 {
     "gold_standard": {
-        "predictor": "BimodalDebug",
+        "predictor": "Bimodal",
         "debug": true,
         "no_model": false
     },

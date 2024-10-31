@@ -1,4 +1,4 @@
-#include "./Predictors/BimodalDebug/Model/BimodalDebug.hpp"
+#include "./Predictors/Bimodal/Model/Bimodal.hpp"
 #include "include/gold_standard.hpp"
 #include "include/types.h"
 #include "include/bsv_predictor.hpp"
@@ -46,12 +46,13 @@ void O3_CPU::last_branch_result(uint64_t ip, uint64_t branch_target, uint8_t tak
       #ifndef MODEL_OFF
       model_predictor.last_branch_result(ip, branch_target, taken, branch_type);
       prediction_count++;
-      assert_message(last_bsv_prediction == last_model_prediction, "Failed on %ld after %ld instructions\n gold standard predicts: %d, bsv predictor predicts: %d\n", ip, prediction_count, last_model_prediction, last_bsv_prediction);
+      
       #ifdef DEBUG_DATA
         DebugData& bsv_debug = bluespec_predictor.last_debug_entry;
         DebugData& model_debug = model_predictor.last_debug_entry;
         assert_message(bsv_debug == model_debug, "Debug data has diverged on %ld after %ld predicts\nGold standard: %ld %ld %ld\nBluespec predictor: %ld %ld %ld\n", ip, prediction_count, model_debug.entryNumber, model_debug.entryValues, (uint64_t)model_debug.global_history, bsv_debug.entryNumber, bsv_debug.entryValues, (uint64_t)bsv_debug.global_history);
       #endif
+      assert_message(last_bsv_prediction == last_model_prediction, "Failed on %ld after %ld instructions\n gold standard predicts: %d, bsv predictor predicts: %d\n", ip, prediction_count, last_model_prediction, last_bsv_prediction);
       #endif
     }
     //bluespec_predictor.last_branch_result(ip, branch_target, taken, branch_type);
