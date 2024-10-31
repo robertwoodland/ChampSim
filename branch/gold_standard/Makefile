@@ -56,8 +56,13 @@ failure_check:
 	make all_bsim PREDICTOR=$(PREDICTOR) || make unset PREDICTOR=$(PREDICTOR)
 
 
+ifdef MODEL_OFF
+.PHONY: all_bsim
+all_bsim: full_clean turn_model_checking_off set_bsv_predictor compile  link unset
+else
 .PHONY: all_bsim
 all_bsim: full_clean  set_bsv_predictor compile  link unset set_gold_standard
+endif
 
 build_bsim:
 	mkdir -p $(BUILD_DIR)
@@ -82,6 +87,10 @@ set_gold_standard:
 		sed -i '1s|.*|#include "$(INCLUDE_GOLD_STANDARD)"|' $(TOP_FRAMEWORK_FILE)
 	test -f $(GOLD_STANDARD_HEADER) && \
 		sed -i '1s|.*|#define $(DEBUG_MACRO)|' $(GOLD_STANDARD_HEADER)
+
+turn_model_checking_off:
+	test -f $(TOP_FRAMEWORK_FILE) &&\
+		sed -i '1s|.*|#define MODEL_OFF|' $(TOP_FRAMEWORK_FILE)
 
 .PHONY: set_bsv_predictor
 set_bsv_predictor:
