@@ -3,7 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdbool.h>
 #include "types.h"
+
 
 int pipe_read;
 int pipe_write;
@@ -25,6 +27,7 @@ __uint64_t to_long(const unsigned char* charArray){
   return result;
 }
 
+// Whether it is in debug mode or not
 void set_file_descriptors(){
   const char* fd_in = getenv(ENV_FIFO_IN);
   const char* fd_out = getenv(ENV_FIFO_OUT);
@@ -81,16 +84,35 @@ void recieve(unsigned int* res){
   }
 }
 
-void branch_pred_resp(char taken, __uint64_t ip){
-  //printf("Waiting to write %ld\n", ip);
-  char buff[9];
+void setup_pred_resp(char taken, __uint64_t ip, char* buff){
   buff[0] = taken + '0';
   memcpy(&buff[1], &ip, 8);
-  int num_bytes =  write(pipe_write, &buff, 9);
-  if(num_bytes == -1){
+}
+
+void write_to_pipe(char* buff, int num_bytes){
+  int num_written = write(pipe_write, buff, num_bytes);
+  if(num_written != num_bytes){
     perror("Failed to write to pipe");
     exit(EXIT_FAILURE);
   }
+}
+
+void branch_pred_resp_with_debug(char taken, __uint64_t ip, __uint64_t entryNumber, __uint64_t entryValues, __uint64_t* history){
+  //printf("%d %ld %ld %ld %ld %ld\n", taken, ip, entryNumber, entryValues, history[0], history[1]);
+  char buff[PRED_RESP_WITH_DEBUG];
+  setup_pred_resp(taken, ip, buff);
+  memcpy(&buff[PRED_RESP], &entryNumber, 8);
+  memcpy(&buff[PRED_RESP]+8, &entryValues, 8);
+  // For 128 bits of history
+  memcpy(&buff[PRED_RESP]+16, history, 16);
+  write_to_pipe(buff, PRED_RESP_WITH_DEBUG);
+}
+
+void branch_pred_resp(char taken, __uint64_t ip){
+  //printf("Waiting to write %ld\n", ip);
+  char buff[PRED_RESP];
+  setup_pred_resp(taken, ip, buff);
+  write_to_pipe(buff, PRED_RESP);
   //printf("Done waiting\n");
 }
 

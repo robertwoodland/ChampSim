@@ -2,13 +2,15 @@ import StmtFSM::*;
 import BrPred::*;
 import Predictor::*;
 
+// This is not very extensible at all, also might be better to just have a big blob be sent over
+import "BDPI" function Action branch_pred_resp_with_debug(Bit#(8) taken, Address ip, Bit#(64) entryNumber, Bit#(64) entryValues, Bit#(128) history);
+
 import "BDPI" function Action branch_pred_resp(Bit#(8) taken, Address ip);
 import "BDPI" function ActionValue#(Bit#(160)) recieve();
 import "BDPI" function Action set_file_descriptors;
 import "BDPI" function Action debug;
 
 typedef UInt#(64) Address;
-
 
 typedef struct {
     UInt#(64) ip;
@@ -30,10 +32,22 @@ module mkTestbench(Empty);
     Reg#(Message) message <- mkReg(?);
     Reg#(Bool) debug <- mkReg(?);
     let predictor <- mkDirPredictor;
+    
     Reg#(DirPredResult#(DirPredTrainInfo)) pendingTrainInfo <- mkReg(DirPredResult{taken: False, train: ?});
+    Reg#(DebugData) debugData <- mkReg(?);
       
-    function ActionValue#(DirPredResult#(DirPredTrainInfo)) predict(Address ip);
-      return predictor.pred[0].pred;
+    function Action test(DebugData d);
+      $display("%d \n",fromMaybe(0,d.entryNumber));
+    endfunction
+    
+    function Action predict(Address ip);
+      `ifdef DEBUG_DATA
+        //DirPredResultWithDebugData result = predictor.pred[0].pred;
+        //test(result.debugData);
+        action let a <- predictor.pred[0].pred; pendingTrainInfo <= a.predResult; debugData <= a.debugData; endaction
+      `else
+        action let a <- predictor.pred[0].pred; pendingTrainInfo <= a; endaction
+      `endif
     endfunction
 
     function Action update(BranchUpdateInfo updateInfo);
@@ -88,9 +102,13 @@ module mkTestbench(Empty);
               action let a <- recieve; message <= convertToMessage(a); endaction
               if (isPred(message)) seq
                 predictor.nextPc(pack(message.PredictReq));
-                action let a <- predict(message.PredictReq); pendingTrainInfo <= a; endaction
+                predict(message.PredictReq);
                 if(debug) debugPredictionReq(message.PredictReq);
-                branch_pred_resp({7'b0000000,pack(pendingTrainInfo.taken)}, message.PredictReq);
+                `ifdef DEBUG_DATA
+                  branch_pred_resp_with_debug({7'b0000000,pack(pendingTrainInfo.taken)}, message.PredictReq, fromMaybe(0,debugData.entryNumber), fromMaybe(0,debugData.entryValues), fromMaybe(0, debugData.history));
+                `else
+                  branch_pred_resp({7'b0000000,pack(pendingTrainInfo.taken)}, message.PredictReq);
+                `endif
               endseq
               if (!isPred(message)) seq
                 update(message.UpdateReq);

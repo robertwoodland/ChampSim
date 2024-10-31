@@ -1,4 +1,4 @@
-#include "./Predictors/Bimodal/Model/Bimodal.hpp"
+#include "./Predictors/BimodalDebug/Model/BimodalDebug.hpp"
 #include "include/gold_standard.hpp"
 #include "include/types.h"
 #include "include/bsv_predictor.hpp"
@@ -38,8 +38,14 @@ void O3_CPU::last_branch_result(uint64_t ip, uint64_t branch_target, uint8_t tak
       //sleep(1);
       model_predictor.last_branch_result(ip, branch_target, taken, branch_type);
       bluespec_predictor.last_branch_result(ip, branch_target, taken, branch_type);
+
       prediction_count++;
       assert_message(last_bsv_prediction == last_model_prediction, "Failed on %ld after %ld instructions\n gold standard predicts: %d, bsv predictor predicts: %d\n", ip, prediction_count, last_model_prediction, last_bsv_prediction);
+      #ifdef DEBUG_DATA
+        DebugData bsv_debug = bluespec_predictor.last_debug_entry;
+        #printf("%ld\n",bsv_debug.entryNumber);
+        assert(bsv_debug == model_predictor.last_debug_entry);
+      #endif
     }
     //bluespec_predictor.last_branch_result(ip, branch_target, taken, branch_type);
 }

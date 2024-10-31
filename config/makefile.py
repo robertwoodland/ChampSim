@@ -42,17 +42,21 @@ def append_variable(var, *val, targets=[]):
 def each_in_dict_list(d):
     yield from itertools.chain(*(zip(itertools.repeat(kv[0]), kv[1]) for kv in d.items()))
 
-def make_part(src_dirs, dest_dir, build_id, gold_standard_testing=""):
+def make_part(src_dirs, dest_dir, build_id, gold_standard_testing={}):
     dir_varnames = []
     obj_varnames = []
 
     for i, base_source in enumerate(itertools.chain(*([(s,b) for b,_,_ in os.walk(s)] for s in src_dirs))):
         
         # Don't try to build other files
-        if gold_standard_testing != "":
+        if gold_standard_testing:
             if base_source[0].split('/')[-1] == defaults.get_gold_standard_file():
                 if base_source[1].split('/')[-1] != defaults.get_gold_standard_file():
                     continue
+                else:
+                    yield assign_variable('gold_standard_testing_predictor_directory', gold_standard_testing['predictor'])
+                    if 'debug' in gold_standard_testing.keys() and gold_standard_testing['debug']:
+                        yield assign_variable('gold_standard_testing_debug_on', '1')
 
         local_dir_varname = '{}_dirs_{}'.format(build_id, i)
         local_obj_varname = '{}_objs_{}'.format(build_id, i)
@@ -87,12 +91,9 @@ def make_part(src_dirs, dest_dir, build_id, gold_standard_testing=""):
         dir_varnames.append(local_dir_varname)
         obj_varnames.append(local_obj_varname)
     
-    if gold_standard_testing != "":
-        yield assign_variable('gold_standard_testing_predictor_directory', gold_standard_testing)
-
     return dir_varnames, obj_varnames
 
-def executable_opts(obj_root, build_id, executable, source_dirs, gold_standard_testing=""):
+def executable_opts(obj_root, build_id, executable, source_dirs, gold_standard_testing={}):
     dest_dir = os.path.join(obj_root, build_id)
 
     # Add compiler flags
@@ -115,7 +116,7 @@ def executable_opts(obj_root, build_id, executable, source_dirs, gold_standard_t
 
     return dir_varnames, obj_varnames
 
-def module_opts(obj_dir, build_id, module_name, source_dirs, opts, gold_standard_testing=""):
+def module_opts(obj_dir, build_id, module_name, source_dirs, opts, gold_standard_testing={}):
     build_dir = os.path.join(obj_dir, build_id)
     dest_dir = os.path.join(build_dir, module_name)
 
@@ -130,7 +131,7 @@ def module_opts(obj_dir, build_id, module_name, source_dirs, opts, gold_standard
 
     return dir_varnames, obj_varnames
 
-def get_makefile_lines(objdir, build_id, executable, source_dirs, module_info, config_file, gold_standard_testing=""):
+def get_makefile_lines(objdir, build_id, executable, source_dirs, module_info, config_file, gold_standard_testing={}):
     executable_path = os.path.abspath(executable)
 
     dir_varnames, obj_varnames = yield from executable_opts(os.path.abspath(objdir), build_id, executable_path, source_dirs, gold_standard_testing)

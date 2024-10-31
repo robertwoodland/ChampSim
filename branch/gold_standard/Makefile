@@ -32,15 +32,20 @@ BSC_LINK_FLAGS = -keep-fires
 PREDICTOR ?= TourPredictor
 BSC_PATHS = -p $(BSV_SRC):$(BSV_INCLUDE):$(PRED_DIR)/$(PREDICTOR)/Bluespec:$(PL)
 
-
-TOP_FRAMEWORK_FILE ?= $(TOPDIR)/gold_standard.cc
 TOP_BSV_PREDICTOR_FILE ?= $(TOPDIR)/$(PRED_DIR)/$(PREDICTOR)/Bluespec/$(PREDICTOR).bsv
 DIR_PREDICTOR_INTERFACE_LOCATION ?= $(BSV_INCLUDE)/Predictor.bsv
 
+
+GOLD_STANDARD_HEADER ?= $(INCLUDE)/gold_standard.hpp
+TOP_FRAMEWORK_FILE ?= $(TOPDIR)/gold_standard.cc
 INCLUDE_GOLD_STANDARD ?= $(PRED_DIR)/$(PREDICTOR)/Model/$(PREDICTOR).hpp
 
 
-
+ifdef DEBUG_ON
+	DEBUG_MACRO ?= DEBUG_DATA
+else
+	DEBUG_MACRO ?= NONE
+endif
 
 BSIM_DIRS = -simdir $(SIM_DIR) -bdir $(SIM_DIR) -info-dir $(SIM_DIR)
 CFILE = $(BSV_SRC)/reciever.c
@@ -61,7 +66,7 @@ build_bsim:
 .PHONY: compile
 compile: build_bsim
 	@echo Compiling for Bluesim ...
-	bsc -u -sim $(BSIM_DIRS) $(BSC_COMP_FLAGS) $(BSC_PATHS) -g $(TOPMODULE)  $(TOPFILE)
+	bsc -u -sim -D $(DEBUG_MACRO) $(BSIM_DIRS) $(BSC_COMP_FLAGS) $(BSC_PATHS)  -g $(TOPMODULE)  $(TOPFILE)
 	@echo Compiling for Bluesim finished
 
 .PHONY: link
@@ -75,6 +80,8 @@ link:
 set_gold_standard:
 	test -f $(TOP_FRAMEWORK_FILE) && test -f $(INCLUDE_GOLD_STANDARD) && \
 		sed -i '1s|.*|#include "$(INCLUDE_GOLD_STANDARD)"|' $(TOP_FRAMEWORK_FILE)
+	test -f $(GOLD_STANDARD_HEADER) && \
+		sed -i '1s|.*|#define $(DEBUG_MACRO)|' $(GOLD_STANDARD_HEADER)
 
 .PHONY: set_bsv_predictor
 set_bsv_predictor:
