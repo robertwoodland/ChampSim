@@ -121,26 +121,25 @@ namespace gold_standard {
         // Set up training data, half of it is not really necessary
         if(!found_provider){
             last_training_data.use_bimodal = true;
-            last_training_data.taken = access_bimodal_entry(ip) == 1;
+            last_training_data.provider_prediction = access_bimodal_entry(ip) == 1;
+            last_training_data.taken = last_training_data.provider_prediction;
         }else{
             last_training_data.use_bimodal = false;
             last_training_data.pred_table = provider;
             last_training_data.provider_prediction = provider_entry.counter > WEAK_NOT_TAKEN;
             last_training_data.taken = last_training_data.provider_prediction;
+
             if(!found_alt){
                last_training_data.alt_bimodal = true;
-               last_training_data.alt_prediction = access_bimodal_entry(ip) > 1;
+               last_training_data.alt_prediction = access_bimodal_entry(ip) == 1;
             }else{
                 last_training_data.alt_bimodal = false;
                 last_training_data.alt_table = alt;
                 last_training_data.alt_prediction = alt_entry.counter > WEAK_NOT_TAKEN;
-                
-                
                 // Is this also true if the alternative is bimodal?
                 if(provider_entry.useful_counter == 0 && (provider_entry.counter == WEAK_TAKEN || provider_entry.counter == WEAK_NOT_TAKEN) && alt_on_na >= ALT_ON_NA_THRESHOLD){
                     last_training_data.taken = last_training_data.alt_prediction;
                 }
-                
             }
         }
 
@@ -166,8 +165,7 @@ namespace gold_standard {
         set_bimodal_bit(bimodal_index.first, (counter & 2) >> 1, bimodal_prediction_bits);
         set_bimodal_bit(bimodal_index.second, counter & 1, bimodal_hysteresis_bits);
 
-
-        // ******** Allocation
+        // ******** Allocation on misprediction
         if(last_training_data.taken != branch_taken && (last_training_data.use_bimodal || (last_training_data.pred_table < tagged_tables.size()-1))){
             // On a prediction this could be brought along rather than recalculated?
             // CHECK
@@ -223,15 +221,13 @@ namespace gold_standard {
             
             // Update counter regardless
             update_counter(t.counter, taken, COUNTER_MAX);
-
             // Update useful counters
-            if(!last_training_data.alt_bimodal){
-                if(last_training_data.provider_prediction == branch_taken && last_training_data.alt_prediction != branch_taken) {
-                    update_counter(t.useful_counter, true, U_COUNTER_MAX);
-                }else if(last_training_data.provider_prediction != branch_taken && last_training_data.alt_prediction == branch_taken) {
-                    update_counter(t.useful_counter, false, U_COUNTER_MAX);
-                }
+            if(last_training_data.provider_prediction == branch_taken && last_training_data.alt_prediction != branch_taken) {
+                update_counter(t.useful_counter, true, U_COUNTER_MAX);
+            }else if(last_training_data.provider_prediction != branch_taken && last_training_data.alt_prediction == branch_taken) {
+                update_counter(t.useful_counter, false, U_COUNTER_MAX);
             }
+            pred->set_entry(index, t);
 
             // Update ALT_ON_NA
             if(t.useful_counter == 0 && (t.counter == WEAK_NOT_TAKEN || t.counter == WEAK_TAKEN)){   
@@ -250,7 +246,7 @@ namespace gold_standard {
             global_history.set(0, true);
         }else if(branch_type == BRANCH_CONDITIONAL){
             global_history <<= 1;
-            global_history.set(0, taken);
+            global_history.set(0, branch_taken);
             
             path_history <<= 1;
             path_history.set(0, (bool)(ip & (1 << 5) >> 5));
@@ -355,7 +351,7 @@ namespace gold_standard {
 
     // Shift registers
     template<const table_parameters& params>
-    void tagged_table<params>::update_history(std::bitset<GLOBAL_SIZE>& global, std::bitset<PATH_HISTORY_SIZE> path) {
+    void tagged_table<params>::update_history(std::bitset<GLOBAL_SIZE>& global, std::bitset<PATH_HISTORY_SIZE>& path) {
             // Global history
             bool last_bit = folded_history.test(params.index_size-1);
             folded_history <<= 1;
@@ -374,8 +370,8 @@ namespace gold_standard {
             // Not sure the best way to change this up so the tag is different enough
             last_bit = folded_tag.test(params.tag_size-1);
             folded_tag <<= 1;
-            i = (params.history_length-3) % params.tag_size;
             folded_tag.set(0, global.test(0) ^ last_bit);
+            i = (params.history_length-3) % params.tag_size;
             folded_tag.set(i, global.test(params.history_length-3) ^ folded_tag.test(i));
     }
 
@@ -393,13 +389,6 @@ namespace gold_standard {
         uint16_t tag = (pc & mask) ^ (pc >> (5 + params.tag_size) & mask) ^ folded_tag.to_ulong();
         return tag;
     }
-
-
-    /*
-    
-    */
-
-
 
 };
 
