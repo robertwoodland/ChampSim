@@ -113,16 +113,15 @@ namespace gold_standard {
             }
             debug_printf("%ld\n", ip);
         }
-        debug_printf("%d %d %d %d\n", found_provider, found_alt, alt, provider);
+        //printf("%d %d %d %d\n", found_provider, found_alt, alt, provider);
         if(found_provider){
             debug_printf("%d\n", provider_entry.counter);
         }
-        
 
         // Set up training data, half of it is not really necessary
         if(!found_provider){
             last_training_data.use_bimodal = true;
-            last_training_data.taken = access_bimodal_entry(ip) > 1;
+            last_training_data.taken = access_bimodal_entry(ip) == 1;
         }else{
             last_training_data.use_bimodal = false;
             last_training_data.pred_table = provider;
@@ -256,8 +255,12 @@ namespace gold_standard {
             path_history <<= 1;
             path_history.set(0, (bool)(ip & (1 << 5) >> 5));
         }
+
+        for(uint32_t i = 0; i < tagged_tables.size(); i++){
+            tagged_tables[i]->update_history(global_history, path_history);
+        }
         
-        debug_printf("Updated %d\n", taken);
+        //printf("Updated %d\n", taken);
         // DODGY - meant to be done each cycle
         feedback_shift_register.next();
         
@@ -271,23 +274,33 @@ namespace gold_standard {
     uint8_t get_bimodal_bit(uint32_t index, std::array<uint64_t,size>& bimodal_table){
         uint32_t i = index / 64;
         uint16_t offset = index % 64;
-        return (bimodal_table[i] & (1 << offset)) >> offset;
+        uint64_t mask = (uint64_t(1) << offset);
+        return (bimodal_table[i] & mask) >> offset;
     }
 
     template <uint64_t size>
     void set_bimodal_bit(uint32_t index, uint8_t bit, std::array<uint64_t,size>& bimodal_table){
         uint32_t i = index / 64;
         uint16_t offset = index % 64;
-        bimodal_table[i] |= (1 << offset);
-        bimodal_table[i] &= (bit << offset);
+        //printf("%d %d\n", bit, offset);
+        //std::cout << std::bitset<64>(bimodal_table[i]) << std::endl;
+        
+        uint64_t mask = ~( uint64_t(1) << offset);
+        uint64_t bit_mask = (uint64_t(bit) << offset);
+        
+        //std::cout << std::bitset<64>(bimodal_table[i]) << std::endl;
+        bimodal_table[i] &= mask;
+        bimodal_table[i] |= bit_mask;
+        //std::cout << std::bitset<64>(bimodal_table[i]) << std::endl;
+        //sleep(2);
     }
 
     std::pair<uint32_t, uint32_t> get_bimodal_index(uint64_t pc){
         uint64_t mask1 = (1 << BIMODAL_PREDICTION_BITS) - 1;
         uint64_t mask2 = (1 << BIMODAL_HYSTERESIS_BITS) - 1;
 
-        uint32_t prediction_index = mask1 & pc;
-        uint32_t hysteresis_index = mask2 & pc;
+        uint32_t prediction_index = mask1 & (pc>>2);
+        uint32_t hysteresis_index = mask2 & (pc>>2);
         //printf("Indices %d %d\n",prediction_index, hysteresis_index);
         return {prediction_index, hysteresis_index};
     }
@@ -368,15 +381,15 @@ namespace gold_standard {
 
     template<const table_parameters& params>
     int tagged_table<params>::get_index(uint64_t pc){
-        uint64_t mask = (1 << params.index_size)-1;
-        uint64_t folded_pc = (pc & mask) ^ (pc >> (2 + params.index_size) & mask);
+        uint64_t mask = (uint64_t(1) << params.index_size)-1;
+        uint64_t folded_pc = (pc & mask) ^ ((pc >> (params.index_size)) & mask);
         uint64_t index = folded_history.to_ulong() ^ folded_path_history.to_ulong() ^ folded_pc;
         return index;
     }
 
     template<const table_parameters& params>
     uint16_t tagged_table<params>::compute_tag(uint64_t pc){
-        uint64_t mask = (1 << params.tag_size)-1;
+        uint64_t mask = ( uint64_t(1) << params.tag_size)-1;
         uint16_t tag = (pc & mask) ^ (pc >> (5 + params.tag_size) & mask) ^ folded_tag.to_ulong();
         return tag;
     }
