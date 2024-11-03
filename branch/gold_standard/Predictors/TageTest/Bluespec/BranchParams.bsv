@@ -1,0 +1,1 @@
+typedef 128 GlobalHistoryLength;
