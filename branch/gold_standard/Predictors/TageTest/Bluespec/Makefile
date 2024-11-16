@@ -12,7 +12,7 @@ TOPMODULE ?= mkTestbench
 
 
 PL = /opt/tools/bsc/latest/lib/Libraries/
-BSC_COMP_FLAGS = -keep-fires -aggressive-conditions -no-warn-action-shadowing
+BSC_COMP_FLAGS = -keep-fires -aggressive-conditions -no-warn-action-shadowing -check-assert
 BSC_LINK_FLAGS = -keep-fires
 BSC_PATHS = -p $(BSV_SRC):$(BSV_INCLUDE):$(PL)
 
