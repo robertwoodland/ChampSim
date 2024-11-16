@@ -7,9 +7,9 @@ BSV_INCLUDE = $(TOPDIR)/bsv_include
 SIM_DIR ?= $(BUILD_DIR)/build_bsim
 BUILD_DIR ?= $(TOPDIR)/Build
 
-TOPFILE   ?= $(BSV_SRC)/Testbench.bsv
-TOPMODULE ?= mkTestbench
-
+FILE_NAME ?= Testbench
+TOPFILE   ?= $(BSV_SRC)/$(FILE_NAME).bsv
+TOPMODULE ?= mk$(FILE_NAME)
 
 PL = /opt/tools/bsc/latest/lib/Libraries/
 BSC_COMP_FLAGS = -keep-fires -aggressive-conditions -no-warn-action-shadowing -check-assert

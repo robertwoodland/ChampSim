@@ -1,8 +1,9 @@
 import GlobalBranchHistory::*;
 import BranchParams::*;
 import Vector::*;
+import ConfigReg::*; // Need to use this because of run rule reading the history
 
-`define MAX_SPEC_SIZE 8
+
 
 // Assuming out of order updates, would actually be simpler with in order updates as I could keep a pointer
 /*
@@ -18,31 +19,27 @@ Multiple recovery updates to history? hopefully not possible but may need EHRs
 
 */
 
-interface RecoverMechanism#(numeric type length);
-    method ActionValue#(Bit#(length)) undo;
-endinterface
-
-
 interface FoldedHistory#(numeric type length);
     method Bit#(length) history;
     method Action updateHistory(GlobalBranchHistory#(GlobalHistoryLength) global, Bit#(1) newHistory);
-    interface Vector#(`MAX_SPEC_SIZE, RecoverMechanism#(length)) recoverFrom;
+    interface Vector#(MaxSpecSize, RecoverMechanism#(length)) recoverFrom;
 endinterface
 
 
 module mkFoldedHistory#(Integer histLength)(FoldedHistory#(length));
-    Reg#(Bit#(length)) folded_history <- mkReg(0);
+    Reg#(Bit#(length)) folded_history <- mkConfigReg(0);
     
     // For out of order recovery of branch history
-    Reg#(Bit#(`MAX_SPEC_SIZE)) last_spec_outcomes <- mkReg(0);
-    Reg#(Bit#(`MAX_SPEC_SIZE)) last_removed_history <- mkReg(0);
+    Reg#(Bit#(MaxSpecSize)) last_spec_outcomes <- mkReg(0);
+    Reg#(Bit#(MaxSpecSize)) last_removed_history <- mkReg(0);
 
     PulseWire recover <- mkPulseWire;
     PulseWire update <- mkPulseWire;
     RWire#(Tuple2#(Bit#(GlobalHistoryLength), Bit#(1))) historyUpdateData <- mkRWire;
 
-    Vector#(`MAX_SPEC_SIZE, RecoverMechanism#(length)) recoverIfc;
+    Vector#(MaxSpecSize, RecoverMechanism#(length)) recoverIfc;
 
+    (* no_implicit_conditions, fire_when_enabled *)
     rule updateHist(!recover && update);
         if(historyUpdateData.wget matches tagged Valid {.global, .newHistory}) begin
         
@@ -62,30 +59,23 @@ module mkFoldedHistory#(Integer histLength)(FoldedHistory#(length));
         end
     endrule
 
-    for(Integer i = 0; i < `MAX_SPEC_SIZE; i = i+1) begin
+    for(Integer i = 0; i < valueOf(MaxSpecSize); i = i+1) begin
         recoverIfc[i] = (interface RecoverMechanism#(length);
             method ActionValue#(Bit#(length)) undo;
-                //recover.send;
+                recover.send;
                 
+                // Restore deleted historu
                 Bit#(length) recovered = folded_history;
                 Integer j = histLength % valueOf(length);
                 for(Integer k = 0; k < i+1; k = k +1) begin                    
                     Bit#(1) eliminateBit = last_removed_history[k];
                     Integer position = (j + k) % valueOf(length);
                     recovered[position] = eliminateBit^recovered[position];
-                
                 end
                 
                 Bit#(length) removed = recovered[i:0] ^ last_spec_outcomes[i:0];
-                //(folded_history >> pointer) | (removed[pointer:0] << )
                 recovered =  removed[i:0] << (valueOf(length)-i-1) | truncateLSB(recovered >> (i+1));
-
-                
-                
-
-                $display("Spec %b\n", last_spec_outcomes);
-                $display("Removed history %b\n", last_removed_history);
-                $display("Recovered %b\n", recovered);
+                folded_history <= recovered;
                 return recovered;
             endmethod
         endinterface);
@@ -95,15 +85,9 @@ module mkFoldedHistory#(Integer histLength)(FoldedHistory#(length));
 
     method Bit#(length) history = folded_history;
 
-
-
-
     // How to know the pointer? Realistically commit stage cannot know
     // If in order then fetch stage will know which branch because we can keep a pointer
     // But that also requires sending back correct updates to the global history
-
-    
-    
 
     method Action updateHistory(GlobalBranchHistory#(GlobalHistoryLength) global, Bit#(1) newHistory);
         // Shift and add new history bit, with older history
