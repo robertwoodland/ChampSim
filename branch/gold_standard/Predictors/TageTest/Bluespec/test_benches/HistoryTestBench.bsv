@@ -26,10 +26,11 @@ module mkHistoryTestBench(Empty);
     Reg#(Bit#(GlobalHistoryLength)) last_global_3 <- mkReg(0);
 
     rule start(starting);
-        lfsr.seed(3);
+        lfsr.seed(9);
         starting <= False;
     endrule
 
+    //(* conflict_free = "gb_updateHistory, run" *)
     rule run (!starting);
         //x <= ~x;
         Bit#(1) value = lfsr.value[0];

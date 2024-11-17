@@ -2,13 +2,15 @@
 # Directory containing the Bluespec Training distribution directory
 
 TOPDIR ?= .
+
+TESTBENCH_PATH ?= $(TOPDIR)/test_benches
 BSV_SRC = $(TOPDIR)
-BSV_INCLUDE = $(TOPDIR)/bsv_include
+BSV_INCLUDE = $(TOPDIR)/bsv_include:../../../bsv_include
 SIM_DIR ?= $(BUILD_DIR)/build_bsim
 BUILD_DIR ?= $(TOPDIR)/Build
 
 FILE_NAME ?= Testbench
-TOPFILE   ?= $(BSV_SRC)/$(FILE_NAME).bsv
+TOPFILE   ?= $(TESTBENCH_PATH)/$(FILE_NAME).bsv
 TOPMODULE ?= mk$(FILE_NAME)
 
 PL = /opt/tools/bsc/latest/lib/Libraries/
