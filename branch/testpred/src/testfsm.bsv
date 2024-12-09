@@ -4,6 +4,16 @@ import "BDPI" function Action branch_pred_resp(Bit#(8) taken, Address ip);
 import "BDPI" function ActionValue#(Bit#(160)) recieve();
 import "BDPI" function Action set_file_descriptors;
 import "BDPI" function Action debug;
+import Assert::*;
+import Types::*;
+import ProcTypes::*;
+import Vector::*;
+import BrPred::*;
+import Bht::*;
+// import GSelectPred::*;
+// import GSharePred::*;
+// import TourPred::*;
+// import TourPredSecure::*;
 
 typedef UInt#(64) Address;
 
@@ -21,10 +31,13 @@ typedef union tagged{
 
 (* synthesize *)
 module mkTestbench(Empty);
+    DirPredictor#(BhtTrainInfo) myPredictor <- mkBht();
     
-    function Bit#(8) predict(Address ip);
-      return 8'd1;
-    endfunction
+    function ActionValue #(Bit#(8)) predict(Address ip) = actionvalue
+      // TODO: Set next pc before calling
+      let nextPc <- myPredictor.pred[0].nextPc(ip); 
+      let prediction <- myPredictor.pred[0].pred();
+      return zeroExtend(pack(prediction.taken)); endactionvalue;
 
     function BranchUpdateInfo convertUpdate(Bit#(160) b);
       UInt#(64) ip = unpack(b[65:2]);
@@ -65,14 +78,15 @@ module mkTestbench(Empty);
     Reg#(BranchUpdateInfo) update <- mkReg(?);
     Reg#(Bit#(8)) prediction <- mkReg(0);
     Reg#(Message) message <- mkReg(?);
+    let pred <- mkReg(?);
     Reg#(Bool) debug <- mkReg(?);
     Stmt stmt = seq 
         set_file_descriptors;
         action let a <- $test$plusargs("DEBUG"); debug <= a; endaction
             while(True) seq
-              action let a <- recieve; message <= convertToMessage(a); endaction
+              action let a <- recieve; message <= convertToMessage(a); let b <- predict(message.PredictReq); pred <= b; endaction
               if (isPred(message)) seq
-                prediction <= predict(message.PredictReq);
+                prediction <= pred;
                 if(debug) debugPredictionReq(message.PredictReq);
                 branch_pred_resp(prediction, message.PredictReq);  
               endseq

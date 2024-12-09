@@ -20,10 +20,12 @@ TOPFILE   ?= $(DISTRO)/testfsm.bsv
 TOPMODULE ?= mkTestbench
 
 PL = /opt/tools/bsc/latest/lib/Libraries/
-BSC_COMP_FLAGS = -elab -keep-fires -aggressive-conditions -no-warn-action-shadowing
+BSC_COMPILATION_FLAGS = -elab -keep-fires -aggressive-conditions -no-warn-action-shadowing
 INCLUDE = $(TOPDIR)/include
 BSC_LINK_FLAGS = -keep-fires
 BSC_PATHS = -p $(DISTRO):$(PL):$(TOPDIR)/lib
+
+include ./Include_RISCY_Config.mk
 
 .PHONY: help
 help:
@@ -70,7 +72,7 @@ build_bsim:
 .PHONY: compile
 compile: build_bsim
 	@echo Compiling for Bluesim ...
-	bsc -u -sim $(BSIM_DIRS) $(BSC_COMP_FLAGS) $(BSC_PATHS) -g $(TOPMODULE)  $(TOPFILE)
+	bsc -u -sim $(BSIM_DIRS) $(BSC_COMPILATION_FLAGS) $(BSC_PATHS) -g $(TOPMODULE)  $(TOPFILE)
 	@echo Compiling for Bluesim finished
 
 .PHONY: link
@@ -103,7 +105,7 @@ verilog_dir:
 .PHONY: verilog
 verilog: build_v  verilog_dir
 	@echo Compiling for Verilog ...
-	bsc -u -verilog $(V_DIRS) $(BSC_COMP_FLAGS) $(BSC_PATHS) -g $(TOPMODULE)  $(TOPFILE)
+	bsc -u -verilog $(V_DIRS) $(BSC_COMPILATION_FLAGS) $(BSC_PATHS) -g $(TOPMODULE)  $(TOPFILE)
 	@echo Compiling for Verilog finished
 
 .PHONY: v_link
