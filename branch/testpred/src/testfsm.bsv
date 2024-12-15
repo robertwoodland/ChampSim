@@ -17,6 +17,13 @@ import Bht::*;
 
 typedef UInt#(64) Address;
 
+
+// Local BHT Typedefs
+typedef 128 BhtEntries;
+typedef Bit#(TLog#(BhtEntries)) BhtIndex;
+
+typedef BhtIndex BhtTrainInfo;
+
 typedef struct {
     UInt#(64) ip;
     UInt#(64) target;
@@ -38,6 +45,12 @@ module mkTestbench(Empty);
       let nextPc <- myPredictor.pred[0].nextPc(ip); 
       let prediction <- myPredictor.pred[0].pred();
       return zeroExtend(pack(prediction.taken)); endactionvalue;
+
+    method Action update(BranchUpdateInfo b);
+      let index = myPredictor.getIndex(b.ip);
+      BhtTrainInfo train = index;
+      myPredictor.update(b.taken, index, b.branch_type);
+    endmethod
 
     function BranchUpdateInfo convertUpdate(Bit#(160) b);
       UInt#(64) ip = unpack(b[65:2]);
@@ -75,7 +88,7 @@ module mkTestbench(Empty);
       return x;
     endfunction
 
-    Reg#(BranchUpdateInfo) update <- mkReg(?);
+    Reg#(BranchUpdateInfo) updateInfo <- mkReg(?);
     Reg#(Bit#(8)) prediction <- mkReg(0);
     Reg#(Message) message <- mkReg(?);
     let pred <- mkReg(?);
@@ -91,7 +104,8 @@ module mkTestbench(Empty);
                 branch_pred_resp(prediction, message.PredictReq);  
               endseq
               if (!isPred(message)) seq
-                update <= message.UpdateReq;
+                updateInfo <= message.UpdateReq;
+                update(updateInfo);
                 if(debug) debugUpdate(update);
               endseq
             endseq
