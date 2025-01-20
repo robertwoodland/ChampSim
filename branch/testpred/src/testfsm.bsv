@@ -8,6 +8,7 @@ import Assert::*;
 import Types::*;
 import ProcTypes::*;
 import Vector::*;
+import FIFO::*;
 import BrPred::*;
 import Bht::*;
 // import GSelectPred::*;
@@ -16,13 +17,6 @@ import Bht::*;
 // import TourPredSecure::*;
 
 typedef UInt#(64) Address;
-
-
-// Local BHT Typedefs
-typedef 128 BhtEntries;
-typedef Bit#(TLog#(BhtEntries)) BhtIndex;
-
-typedef BhtIndex BhtTrainInfo;
 
 typedef struct {
     UInt#(64) ip;
@@ -39,18 +33,19 @@ typedef union tagged{
 (* synthesize *)
 module mkTestbench(Empty);
     DirPredictor#(BhtTrainInfo) myPredictor <- mkBht();
+    FIFO#(Tuple2#(BhtTrainInfo, Bool)) pendingUpdates <- mkFIFO1;
     
-    function ActionValue #(Bit#(8)) predict(Address ip) = actionvalue
-      // TODO: Set next pc before calling
-      let nextPc <- myPredictor.pred[0].nextPc(ip); 
-      let prediction <- myPredictor.pred[0].pred();
-      return zeroExtend(pack(prediction.taken)); endactionvalue;
+    function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
+      let pred <- myPredictor.pred[0].pred();
+      pendingUpdates.enq(tuple2(pred.train, pred.taken));
+      return zeroExtend(pack(pred.taken));
+    endactionvalue; // TODO (RW): Could have this write straight to register
 
-    method Action update(BranchUpdateInfo b);
-      let index = myPredictor.getIndex(b.ip);
-      BhtTrainInfo train = index;
-      myPredictor.update(b.taken, index, b.branch_type);
-    endmethod
+    function Action update(Tuple2#(BhtTrainInfo, Bool) b, Bool truthTaken) = action
+      BhtTrainInfo trainInfo = tpl_1(b);
+      Bool predTaken = tpl_2(b);
+      myPredictor.update(truthTaken, trainInfo, (truthTaken != predTaken));
+    endaction;
 
     function BranchUpdateInfo convertUpdate(Bit#(160) b);
       UInt#(64) ip = unpack(b[65:2]);
@@ -91,7 +86,7 @@ module mkTestbench(Empty);
     Reg#(BranchUpdateInfo) updateInfo <- mkReg(?);
     Reg#(Bit#(8)) prediction <- mkReg(0);
     Reg#(Message) message <- mkReg(?);
-    let pred <- mkReg(?);
+    Reg#(Bit#(8)) pred <- mkRegU();
     Reg#(Bool) debug <- mkReg(?);
     Stmt stmt = seq 
         set_file_descriptors;
@@ -105,8 +100,10 @@ module mkTestbench(Empty);
               endseq
               if (!isPred(message)) seq
                 updateInfo <= message.UpdateReq;
-                update(updateInfo);
-                if(debug) debugUpdate(update);
+                update(pendingUpdates.first(), (updateInfo.taken == 1)); // TODO (RW): Check that FIFO is in the right order
+                pendingUpdates.deq();
+                // if(debug) debugUpdate(update);
+                // TODO (RW): Move include, lib and src out of champsim, point C file at script that points at bluespec.
               endseq
             endseq
             /*while(True) seq
