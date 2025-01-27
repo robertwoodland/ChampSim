@@ -9,7 +9,7 @@ CPPFLAGS += -isystem $(TRIPLET_DIR)/include
 LDFLAGS  += -L$(TRIPLET_DIR)/lib -L$(TRIPLET_DIR)/lib/manual-link
 LDLIBS   += -llzma -lz -lbz2 -lfmt
 
-.phony: all all_execs clean configclean test makedirs
+.phony: all all_execs clean configclean test makedirs restore
 
 test_main_name=$(ROOT_DIR)/test/bin/000-test-main
 
@@ -25,6 +25,9 @@ all: all_execs
 include _configuration.mk
 
 all_execs: $(filter-out $(test_main_name), $(executable_name))
+# Move all testpred src files outside of the repo
+	rm -rf ../src/
+	-mv branch/testpred/src ../
 
 # Remove all intermediate files
 clean:
@@ -34,6 +37,11 @@ clean:
 	@-$(RM) inc/ooo_cpu_modules.h
 	@-$(RM) src/core_inst.cc
 	@-$(RM) $(test_main_name)
+	@-mv ../src branch/testpred/ || git restore branch/testpred/src*
+
+# Bring back the files from ../src/
+restore:
+	-mv ../src branch/testpred/ || git restore branch/testpred/src*
 
 # Remove all configuration files
 configclean: clean
