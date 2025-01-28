@@ -10,9 +10,9 @@
 
 #include "ooo_cpu.h"
 #include "tracereader.h"
-#include "include/types.h"
+#include "types.h"
 
-#define SCRIPT_LOCATION "/home/robert/cam/part2/project/ChampSim-1/branch/testpred/src/Build/script.sh"
+#define SCRIPT_LOCATION "/home/robert/cam/part2/project/ChampSim-1/branch/bsv/bht/src/Build/script.sh"
 
 #ifndef DEBUG
 #define DEBUG 0
