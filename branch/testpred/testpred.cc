@@ -12,7 +12,7 @@
 #include "tracereader.h"
 #include "types.h"
 
-#define SCRIPT_LOCATION "/home/robert/cam/part2/project/ChampSim-1/branch/bsv/bht/Build/script.sh"
+#define SCRIPT_LOCATION "/home/robert/cam/part2/project/ChampSim-1/branch/bsv/perceptron/Build/script.sh"
 
 #ifndef DEBUG
 #define DEBUG 0
