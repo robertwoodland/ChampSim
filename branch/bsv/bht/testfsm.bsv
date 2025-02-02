@@ -103,7 +103,6 @@ module mkTestbench(Empty);
                 update(pendingUpdates.first(), (updateInfo.taken == 1)); // TODO (RW): Check that FIFO is in the right order
                 pendingUpdates.deq();
                 // if(debug) debugUpdate(update);
-                // TODO (RW): Move include, lib and src out of champsim, point C file at script that points at bluespec.
               endseq
             endseq
             /*while(True) seq
