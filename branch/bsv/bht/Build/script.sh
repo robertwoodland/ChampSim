@@ -8,7 +8,7 @@ package require Bluesim
 #set outfd [lindex $argv 1]
 
 
-Bluesim::sim load /home/robert/cam/part2/project/ChampSim-1/branch/bsv/bht/src/Build/mkTestbench_bsim.so mkTestbench
+Bluesim::sim load /home/robert/cam/part2/project/ChampSim-1/branch/bsv/bht/Build/mkTestbench_bsim.so mkTestbench
 # Bluesim::sim arg "DEBUG"
 
 
