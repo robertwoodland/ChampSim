@@ -10,8 +10,7 @@ import ProcTypes::*;
 import Vector::*;
 import FIFO::*;
 import BrPred::*;
-import Bht::*;
-// import Perceptron::*;
+import Perceptron::*;
 // import GSelectPred::*;
 // import GSharePred::*;
 // import TourPred::*;
@@ -33,8 +32,8 @@ typedef union tagged{
 
 (* synthesize *)
 module mkTestbench(Empty);
-    DirPredictor#(BhtTrainInfo) myPredictor <- mkBht();
-    FIFO#(Tuple2#(BhtTrainInfo, Bool)) pendingUpdates <- mkFIFO1;
+    DirPredictor#(PerceptronTrainInfo) myPredictor <- mkPerceptron();
+    FIFO#(Tuple2#(PerceptronTrainInfo, Bool)) pendingUpdates <- mkFIFO1;
     
     function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
       let pred <- myPredictor.pred[0].pred();
@@ -42,8 +41,8 @@ module mkTestbench(Empty);
       return zeroExtend(pack(pred.taken));
     endactionvalue; // TODO (RW): Could have this write straight to register
 
-    function Action update(Tuple2#(BhtTrainInfo, Bool) b, Bool truthTaken) = action
-      BhtTrainInfo trainInfo = tpl_1(b);
+    function Action update(Tuple2#(PerceptronTrainInfo, Bool) b, Bool truthTaken) = action
+      PerceptronTrainInfo trainInfo = tpl_1(b);
       Bool predTaken = tpl_2(b);
       myPredictor.update(truthTaken, trainInfo, (truthTaken != predTaken));
     endaction;
