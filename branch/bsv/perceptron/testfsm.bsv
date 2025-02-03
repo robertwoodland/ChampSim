@@ -33,7 +33,7 @@ typedef union tagged{
 (* synthesize *)
 module mkTestbench(Empty);
     DirPredictor#(PerceptronTrainInfo) myPredictor <- mkPerceptron();
-    FIFO#(Tuple2#(PerceptronTrainInfo, Bool)) pendingUpdates <- mkFIFO1;
+    FIFO#(Tuple2#(PerceptronTrainInfo, Bool)) pendingUpdates <- mkSizedFIFO(200);
     
     function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
       let pred <- myPredictor.pred[0].pred();
@@ -92,8 +92,9 @@ module mkTestbench(Empty);
         set_file_descriptors;
         action let a <- $test$plusargs("DEBUG"); debug <= a; endaction
             while(True) seq
-              action let a <- recieve; message <= convertToMessage(a); let b <- predict(message.PredictReq); pred <= b; endaction
+              action let a <- recieve; message <= convertToMessage(a); endaction
               if (isPred(message)) seq
+                action let b <- predict(message.PredictReq); pred <= b; endaction
                 prediction <= pred;
                 if(debug) debugPredictionReq(message.PredictReq);
                 branch_pred_resp(prediction, message.PredictReq);  
