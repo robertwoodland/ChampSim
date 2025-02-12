@@ -59,6 +59,8 @@ void O3_CPU::initialize_branch_predictor() {
   to_poll.events = POLLIN;
   to_poll.fd = resp_pipe[0];
 
+  printf("Entering BSV from init\n");
+  fflush(stdout);
   std::function<void(uint64_t)> send = [fd = ::req_pipe[1]](uint64_t branch_ip){
     std::array<char, MSG_LENGTH> buff;
     debug_printf("Prediction Request %ld\n", branch_ip);
@@ -71,6 +73,8 @@ void O3_CPU::initialize_branch_predictor() {
     total_prefetched++;
   };
   
+  printf("Returned from BSV to init\n");
+  fflush(stdout);
   champsim::enable_ahead_predictions(::req_pipe[1], send, &total_prefetched);
 }
 
