@@ -33,7 +33,7 @@ typedef union tagged{
 (* synthesize *)
 module mkTestbench(Empty);
     DirPredictor#(BhtTrainInfo) myPredictor <- mkBht();
-    FIFO#(Tuple2#(BhtTrainInfo, Bool)) pendingUpdates <- mkSizedFIFO(200);
+    FIFO#(Tuple2#(BhtTrainInfo, Bool)) pendingUpdates <- mkSizedFIFO(35);
     
     function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
       let pred <- myPredictor.pred[0].pred();
