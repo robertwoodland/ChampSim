@@ -61,17 +61,18 @@ void O3_CPU::initialize_branch_predictor() {
 
   printf("Entering BSV from init\n");
   fflush(stdout);
-  std::function<void(uint64_t)> send = [fd = ::req_pipe[1]](uint64_t branch_ip){
-    std::array<char, MSG_LENGTH> buff;
-    debug_printf("Prediction Request %ld\n", branch_ip);
-    buff[0] = PREDICT_REQ;
-    memcpy(std::data(buff)+1, &branch_ip, sizeof(branch_ip));
+  // std::function<void(uint64_t)> send = [fd = ::req_pipe[1]](uint64_t branch_ip){
+  //   std::array<char, MSG_LENGTH> buff;
+  //   debug_printf("Prediction Request %ld\n", branch_ip);
+  //   buff[0] = PREDICT_REQ;
+  //   memcpy(std::data(buff)+1, &branch_ip, sizeof(branch_ip));
     
-    if(write(fd, std::data(buff), MSG_LENGTH) == -1){
-      perror("Requesting prediction");
-    }
-    total_prefetched++;
-  };
+  //   if(write(fd, std::data(buff), MSG_LENGTH) == -1){
+  //     perror("Requesting prediction");
+  //   }
+  //   total_prefetched++;
+  // };
+  std::function<void(uint64_t)> send = (uint64_t branch_ip){};
   
   printf("Returned from BSV to init\n");
   fflush(stdout);
