@@ -152,11 +152,11 @@ bool O3_CPU::do_predict_branch(ooo_model_instr& arch_instr)
   // handle branch prediction for all instructions as at this point we do not know if the instruction is a branch
   sim_stats.total_branch_types[arch_instr.branch_type]++;
   auto [predicted_branch_target, always_taken] = impl_btb_prediction(arch_instr.ip);
-  arch_instr.branch_prediction = impl_predict_branch(arch_instr.ip) || always_taken;
-  if (arch_instr.branch_prediction == 0)
-    predicted_branch_target = 0;
 
   if (arch_instr.is_branch) {
+    arch_instr.branch_prediction = impl_predict_branch(arch_instr.ip) || always_taken;
+    if (arch_instr.branch_prediction == 0)
+      predicted_branch_target = 0;
     if constexpr (champsim::debug_print) {
       fmt::print("[BRANCH] instr_id: {} ip: {:#x} taken: {}\n", arch_instr.instr_id, arch_instr.ip, arch_instr.branch_taken);
     }
