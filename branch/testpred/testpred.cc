@@ -72,48 +72,41 @@ void O3_CPU::initialize_branch_predictor() {
   //   }
   //   total_prefetched++;
   // };
-  std::function<void(uint64_t)> send = (uint64_t branch_ip){};
+  std::function<void(uint64_t)> send = [fd = ::req_pipe[1]](uint64_t branch_ip){
+    unsigned char doNothing = 0;
+  };
   
-  printf("Returned from BSV to init\n");
-  fflush(stdout);
   champsim::enable_ahead_predictions(::req_pipe[1], send, &total_prefetched);
 }
 
 
 uint8_t O3_CPU::predict_branch(uint64_t ip)
 {
-   char buff[9];
-   uint8_t out = 0;
-   uint64_t recieved_ip;
+  char buff[9];
+  uint8_t out = 0;
+  uint64_t recieved_ip;
 
-   debug_printf("Predict %ld\n", ip);
-   
-   if(last_prediction){
-    if((*last_prediction).first == ip){
-      debug_printf("Prediction Recieved %ld\n", ip);
-      out = (*last_prediction).second;
-      last_prediction.reset();
-      count++; last_recieved = ip;      
+  debug_printf("Predict %ld\n", ip);
+
+
+  std::array<char, MSG_LENGTH> sendBuff;
+  debug_printf("Prediction Request %ld\n", ip);
+  sendBuff[0] = PREDICT_REQ;
+  memcpy(std::data(sendBuff)+1, &ip, sizeof(ip));
+  
+  if(write(req_pipe[1], std::data(sendBuff), MSG_LENGTH) == -1){
+    perror("Requesting prediction");
+  }   
+  
+  if(read(resp_pipe[0], buff, 9) > 0){ // TODO (RW): This should be a blocking read
+    memcpy(&recieved_ip, &buff[1], 8);
+    if(recieved_ip == ip){
+      out = buff[0] - '0';
+      count++; last_recieved = ip;
+      debug_printf("Prediction Done %ld. Taken: %i\n", recieved_ip, out);
     }
-   }else{
-    
-    debug_printf("total prefetch: %ld, since prefetch: %ld\n", total_prefetched, count);
-    if (total_prefetched > count) {
-      if(read(resp_pipe[0], buff, 9) > 0){
-        memcpy(&recieved_ip, &buff[1], 8);
-        if(recieved_ip == ip){
-          out = buff[0] - '0';
-          count++; last_recieved = ip;
-          debug_printf("Prediction Done %ld\n", recieved_ip);
-        }
-        else{
-          ::last_prediction = {recieved_ip, buff[0]-'0'};
-        }
-      }else{
-        perror("Recieving prediction");
-      }
-    }else{
-      debug_printf("Skipped %ld\n", ip);
+    else{
+      perror("Recieving prediction");
     }
   }
   return out;
