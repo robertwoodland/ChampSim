@@ -98,17 +98,13 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
     perror("Requesting prediction");
   }   
   
-  if(read(resp_pipe[0], buff, 9) > 0){ // TODO (RW): This should be a blocking read
+  assert(read(resp_pipe[0], buff, 9) == 9);
     memcpy(&recieved_ip, &buff[1], 8);
     if(recieved_ip == ip){
       out = buff[0] - '0';
       count++; last_recieved = ip;
       debug_printf("Prediction Done %ld. Taken: %i\n", recieved_ip, out);
     }
-    else{
-      perror("Recieving prediction");
-    }
-  }
   return out;
 }
 
