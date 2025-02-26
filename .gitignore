@@ -21,3 +21,5 @@ vcpkg_installed/
 
 **/_build
 **/_doxygen
+
+build/*
