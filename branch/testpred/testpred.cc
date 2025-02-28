@@ -94,11 +94,13 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
   sendBuff[0] = PREDICT_REQ;
   memcpy(std::data(sendBuff)+1, &ip, sizeof(ip));
   
+  // TODO (RW): Assert that length of write is equal to MSG_LENGTH. 
+  // To do it properly, you should loop and ask for the remaining bytes each time.
   if(write(req_pipe[1], std::data(sendBuff), MSG_LENGTH) == -1){
     perror("Requesting prediction");
   }   
   
-  assert(read(resp_pipe[0], buff, 9) == 9);
+  assert(read(resp_pipe[0], buff, 9) == 9); // If starts crashing, this could be failing...
     memcpy(&recieved_ip, &buff[1], 8);
     if(recieved_ip == ip){
       out = buff[0] - '0';
