@@ -1,4 +1,5 @@
-#include <branch/testpred/testpred.cc> // How to do this?
+// #include "../inc/ooo_cpu.h"
+#include "../branch/testpred/testpred.h"
 #include <gtest/gtest.h>
 
 // TEST(SampleTest, AssertionTrue) {
@@ -14,7 +15,8 @@ TEST(PerceptronTests, PredRetTest)
 {
   uint8_t out;
   uint64_t ip = 1;
-  out = O3_CPU::predict_branch(ip);
+  // out = O3_CPU::predict_branch(ip);
+  out = predict_branch(ip); // Need to include header from somewhere...
 
   EXPECT_EQ(out, 0); // ?
 }
