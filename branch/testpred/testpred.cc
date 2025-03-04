@@ -8,7 +8,11 @@
 #include <sys/stat.h>
 #include <poll.h>
 
+#ifndef TEST_MODE
 #include "ooo_cpu.h"
+#else
+#include "testpred.h"
+#endif
 #include "tracereader.h"
 #include "types.h"
 
