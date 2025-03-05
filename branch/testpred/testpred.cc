@@ -80,7 +80,8 @@ void O3_CPU::initialize_branch_predictor() {
     unsigned char doNothing = 0;
   };
   
-  champsim::enable_ahead_predictions(::req_pipe[1], send, &total_prefetched);
+  // TODO (RW): Guard in ifdef of test mode
+  // champsim::enable_ahead_predictions(::req_pipe[1], send, &total_prefetched);
 }
 
 

@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 enable_testing()
 
 find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+include_directories(${GTEST_INCLUDE_DIRS} inc/)
 
 add_executable(test_main test/test_main.cc branch/testpred/testpred.cc)
 target_link_libraries(test_main ${GTEST_LIBRARIES} pthread)

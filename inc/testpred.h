@@ -9,10 +9,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "operable.h"
-
 // cpu
-class O3_CPU : public champsim::operable
+class O3_CPU
 {
 public:
   void initialize_branch_predictor();
