@@ -27,7 +27,7 @@ typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the i
 
 typedef SizeOf#(Addr) AddrWidth; // Numeric: Number of bits in an address.
 typedef TExp#(AddrWidth) AddrRange; // Numeric: Number of addresses in the range.
-typedef TDiv#(AddrRange, 4) PerceptronCount; // Numeric: Number of perceptrons - depends on hash function.
+typedef TDiv#(AddrRange, TExp#(40)) PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
 typedef TLog#(PerceptronCount) PerceptronsRegIndexWidth; // Numeric: Number of bits to be used for indexing the Regfile of perceptrons.
 typedef Bit#(PerceptronsRegIndexWidth) PerceptronsRegIndex; // Value: Bits used as the index for the Regfile.
  
@@ -86,14 +86,17 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
 
     Reg#(PerceptronsRegIndex) i <- mkReg(0);
     Reg#(Bool) resetHist <- mkReg(True);
+    PerceptronWeights zeroWeights = replicate(0);
         
     rule initHistory(resetHist);
         if (i <= fromInteger(valueOf(PerceptronCount) - 1)) begin
             histories.upd(i, ph.initHist());
-            weights.upd(i, replicate(0)); // TODO (RW): Consider what happens at start when history is full of Falses.
-            global_weights.upd(i, replicate(0));
+            weights.upd(i, zeroWeights); // TODO (RW): Consider what happens at start when history is full of Falses.
+            global_weights.upd(i, zeroWeights);
+            // $display("BSV Perceptron Init: Initialised weights %d to %d", i, global_weights.sub((i > 0) ? i-1 : 0)); // Works! (but print makes too slow)
         end
         if (i == fromInteger(valueOf(PerceptronCount) - 1)) begin
+            $display("BSV Perceptron Init: Initialised all perceptrons & hists");
             resetHist <= False;
         end
 
@@ -104,7 +107,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     endrule
 
     function PerceptronsRegIndex getIndex(Addr pc);
-        return truncate(pc >> 2);
+        return truncate(pc >> 40);
     endfunction
 
     // function PerceptronsRegIndex getIndex(Addr pc, PerceptronGHist gHist);
@@ -130,7 +133,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     Vector#(SupSize, DirPred#(PerceptronTrainInfo)) predIfc;
     for(Integer i = 0; i < valueOf(SupSize); i = i+1) begin
         predIfc[i] = (interface DirPred;
-            method ActionValue#(DirPredResult#(PerceptronTrainInfo)) pred = actionvalue
+            method ActionValue#(DirPredResult#(PerceptronTrainInfo)) pred() if (!resetHist) = actionvalue // Guarded on resetHist
                 // get the global history
                 // all previous branch in this cycle must be not taken
                 // otherwise this branch should be on wrong path
@@ -193,7 +196,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // Train local and global weights
         for (Integer i = 1; i < valueOf(PerceptronEntries); i = i + 1) begin
             local_weights[i] = local_weights[i] + (taken == local_hist[i] ? 1 : -1);
-            g_weights[i] = boundedPlus (g_weights[i], (taken == (train.gHist[i] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
+            g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
         end
 
         // Update weights!
