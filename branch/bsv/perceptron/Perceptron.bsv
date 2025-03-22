@@ -112,7 +112,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     // endfunction
 
     // Function to compute the perceptron output
-    function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronWeights glob_weight, PerceptronGHistReg global_hist);
+    function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
         let gHist = global_hist.history; // Bit#(...)
 
         Int#(16) sum = extend(weight[0]); // Bias weight - TODO (RW): check this can't overflow.
@@ -189,10 +189,13 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // Increment bias if taken, else decrement
         local_weights[0] = (taken) ? local_weights[0] + 1 : local_weights[0] - 1;
 
+        // Train local and global weights
         for (Integer i = 1; i < valueOf(PerceptronEntries); i = i + 1) begin
             local_weights[i] = local_weights[i] + (taken == local_hist[i] ? 1 : -1);
         end
 
+        // TODO (RW): Make weights saturating! Otherwise breaks...
+        
         // Update local history
         local_hist = ph.update(local_hist, taken);
         histories.upd(index, local_hist);
