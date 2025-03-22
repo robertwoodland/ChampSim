@@ -46,6 +46,32 @@ TEST(PerceptronTests, PredTrueTest)
     EXPECT_EQ(out, 1);
   }
 }
+// Check that we always predict not taken if history is always not taken
+TEST(PerceptronTests, PredFalseTest)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count < 100; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+    // update
+    cpu.last_branch_result(ip, 0, 0, 3);
+  }
+
+  // Check that we always predict taken
+  for (uint64_t count = 1; count < 10000; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+    // update
+    cpu.last_branch_result(ip, 0, 0, 3);
+    // assert predicted true
+    EXPECT_EQ(out, 0);
+  }
+}
 
 int main(int argc, char** argv)
 {
