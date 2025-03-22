@@ -185,6 +185,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         let index = train.index; // already hashed
         let local_hist = histories.sub(index);
         PerceptronWeights local_weights = weights.sub(index);
+        PerceptronWeights g_weights = global_weights.sub(index);
         
         // Increment bias if taken, else decrement
         local_weights[0] = (taken) ? local_weights[0] + 1 : local_weights[0] - 1;
@@ -192,7 +193,13 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // Train local and global weights
         for (Integer i = 1; i < valueOf(PerceptronEntries); i = i + 1) begin
             local_weights[i] = local_weights[i] + (taken == local_hist[i] ? 1 : -1);
+            g_weights[i] = boundedPlus (g_weights[i], (taken == (train.gHist[i] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
         end
+
+        // Update weights!
+        weights.upd(index, local_weights);
+        global_weights.upd(index, g_weights);
+
 
         // TODO (RW): Make weights saturating! Otherwise breaks...
         
