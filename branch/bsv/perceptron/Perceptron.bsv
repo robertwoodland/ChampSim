@@ -106,8 +106,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // TODO (RW): May need to guard things on not resetHist -> method stuff on history can only be done if not resetHist.
     endrule
 
-    function PerceptronsRegIndex getIndex(Addr pc);
-        return truncate(pc >> 40);
+    function PerceptronsRegIndex getIndex(Addr pc); // TODO (RW): Try better hash functions?
+        return truncate(pc >> 2); // TODO (RW): Try as 1 - compressed instructions
     endfunction
 
     // function PerceptronsRegIndex getIndex(Addr pc, PerceptronGHist gHist);
