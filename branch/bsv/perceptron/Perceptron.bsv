@@ -150,6 +150,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 Bool taken = computePerceptronOutput(weights.sub(index), histories.sub(index), global_weights.sub(index), global_history); // TODO (RW): Work out how to pass
                 // TODO (RW): Need to know how to flush global_history on mispred? Check other predictors that use global (GSelect).
 
+                $display("BSV Perceptron Pred: Taken: %d", taken); // Correct here!
+
                 // record pred result (for global history)
                 predCnt[i] <= predCnt[i] + 1;
                 Bit#(SupSize) res = predRes[i];
@@ -208,6 +210,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
         // Update local history
         local_hist = ph.update(local_hist, taken);
+        $display("BSV Perceptron Update: Local Hist %d Post Update: %b", index, local_hist);
+
         histories.upd(index, local_hist);
     endmethod
 
