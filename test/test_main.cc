@@ -74,6 +74,45 @@ TEST(PerceptronTests, PredFalseTest)
   }
 }
 
+// Check that the predictor deals well with a nested loop
+TEST(PerceptronTests, PredNestedTest)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count < 100; count++) {
+    for (uint64_t countInner = 1; countInner < 50; countInner++) {
+      // predict
+      out = cpu.predict_branch(ip + 10);
+      // update
+      cpu.last_branch_result(ip + 10, 1, 1, 3);
+    }
+    // predict
+    out = cpu.predict_branch(ip);
+    // update
+    cpu.last_branch_result(ip, 0, 1, 3);
+  }
+
+  // Check that we always predict taken for both inner and outer loops
+  for (uint64_t count = 1; count < 100; count++) {
+    for (uint64_t countInner = 1; countInner < 50; countInner++) {
+      // predict
+      out = cpu.predict_branch(ip + 10);
+      // update
+      cpu.last_branch_result(ip + 10, 1, 1, 3);
+      EXPECT_EQ(out, 1);
+    }
+    // predict
+    out = cpu.predict_branch(ip);
+    // update
+    cpu.last_branch_result(ip, 0, 1, 3);
+    EXPECT_EQ(out, 1);
+  }
+}
+
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
