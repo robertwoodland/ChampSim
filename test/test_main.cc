@@ -42,10 +42,11 @@ TEST(PerceptronTests, PredTrueTest)
     out = cpu.predict_branch(ip);
     // update
     cpu.last_branch_result(ip, 0, 1, 3);
-    // assert predicted true
+    // assert predicted taken
     EXPECT_EQ(out, 1);
   }
 }
+
 // Check that we always predict not taken if history is always not taken
 TEST(PerceptronTests, PredFalseTest)
 {
@@ -68,7 +69,7 @@ TEST(PerceptronTests, PredFalseTest)
     out = cpu.predict_branch(ip);
     // update
     cpu.last_branch_result(ip, 0, 0, 3);
-    // assert predicted true
+    // assert predicted not taken
     EXPECT_EQ(out, 0);
   }
 }
