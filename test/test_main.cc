@@ -2,7 +2,7 @@
 #include "testpred.h"
 #include <gtest/gtest.h>
 
-TEST(SampleTest, AssertionTrue) { EXPECT_TRUE(true); }
+// TEST(SampleTest, AssertionTrue) { EXPECT_TRUE(true); }
 
 // TEST(SampleTest, Addition) {
 //     EXPECT_EQ(1 + 1, 2);
