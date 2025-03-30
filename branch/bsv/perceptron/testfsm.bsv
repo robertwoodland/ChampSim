@@ -36,7 +36,9 @@ module mkTestbench(Empty);
     FIFO#(Tuple2#(PerceptronTrainInfo, Bool)) pendingUpdates <- mkSizedFIFO(35);
     
     function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
-      let pred <- myPredictor.pred[0].pred();
+      DirPredResult#(PerceptronTrainInfo) pred <- myPredictor.pred[ip].pred(); // TODO (RW): Is Address definitely < SupSize?
+      // print taken!
+      $display("BSV TestFSM Predict IP: %d, taken: %d", ip, pred.taken); // Wrong!
       pendingUpdates.enq(tuple2(pred.train, pred.taken));
       return zeroExtend(pack(pred.taken));
     endactionvalue; // TODO (RW): Could have this write straight to register

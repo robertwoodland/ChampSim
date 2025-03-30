@@ -6,7 +6,7 @@ import BrPred::*;
 import GlobalBrHistReg::*;
 import Ehr::*;
 
-export PerceptronTrainInfo;
+export PerceptronTrainInfo(..);
 export mkPerceptron;
 export PerceptronEntries;
 export PerceptronGHist;
@@ -27,7 +27,9 @@ typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the i
 
 typedef SizeOf#(Addr) AddrWidth; // Numeric: Number of bits in an address.
 typedef TExp#(AddrWidth) AddrRange; // Numeric: Number of addresses in the range.
-typedef TDiv#(AddrRange, TExp#(40)) PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
+// typedef TDiv#(AddrRange, TExp#(40)) PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
+typedef 16 PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
+// TODO (RW): Make this same size as BHT. Look at papers to see what is a reasonable size.
 typedef TLog#(PerceptronCount) PerceptronsRegIndexWidth; // Numeric: Number of bits to be used for indexing the Regfile of perceptrons.
 typedef Bit#(PerceptronsRegIndexWidth) PerceptronsRegIndex; // Value: Bits used as the index for the Regfile.
  
@@ -118,18 +120,19 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
         let gHist = global_hist.history; // Bit#(...)
 
-        Int#(16) sum = extend(weight[0]); // Bias weight - TODO (RW): check this can't overflow.
+        Int#(16) sum = 0; // extend(weight[0]); // Bias weight - TODO (RW): check this can't overflow.
         for (Integer i = 1; i < valueOf(PerceptronEntries); i = i + 1) begin // TODO (RW): check loop boundary
-            sum = sum + (history[i] ? extend(weight[i]) : extend(-weight[i])); // Think about hardware this implies. - log (128) = 9 deep?
+            sum = boundedPlus(sum, (history[i] ? extend(weight[i]) : extend(-weight[i]))); // Think about hardware this implies. - log (128) = 9 deep?
             // TODO (RW): Add parameter to choose how much to use global history (multiplier)
-            sum = sum + ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i]));
+            sum = boundedPlus(sum, ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])));
         end
         return sum >= 0;
     endfunction
 
     PerceptronGHist curGHist = global_history.history; // global history: MSB is the latest branch
 
-    // Interface for each perceptron in the table
+    // Interface for each perceptron in the table - is this true?
+    // What is SupSize? Seems to be the number of perceptrons I actually can use?
     Vector#(SupSize, DirPred#(PerceptronTrainInfo)) predIfc;
     for(Integer i = 0; i < valueOf(SupSize); i = i+1) begin
         predIfc[i] = (interface DirPred;
@@ -195,16 +198,13 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
 
         // Train local and global weights
         for (Integer i = 1; i < valueOf(PerceptronEntries); i = i + 1) begin
-            local_weights[i] = local_weights[i] + (taken == local_hist[i] ? 1 : -1);
-            g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
+        local_weights[i] = boundedPlus(local_weights[i], (taken == local_hist[i] ? 1 : -1));
+        g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
         end
 
         // Update weights!
         weights.upd(index, local_weights);
         global_weights.upd(index, g_weights);
-
-
-        // TODO (RW): Make weights saturating! Otherwise breaks...
         
         // Update local history
         local_hist = ph.update(local_hist, taken);

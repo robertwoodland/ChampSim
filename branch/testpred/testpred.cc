@@ -91,7 +91,7 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
   uint8_t out = 0;
   uint64_t recieved_ip;
 
-  debug_printf("Predict %ld\n", ip);
+  // debug_printf("Predict %ld\n", ip);
 
 
   std::array<char, MSG_LENGTH> sendBuff;
@@ -108,6 +108,7 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
     memcpy(&recieved_ip, &buff[1], 8);
     if(recieved_ip == ip){
       out = buff[0] - '0';
+      printf("Prediction %ld, out: %d\n", ip, out); // - deffo getting 0 sometimes when it shouldn't!
       count++; last_recieved = ip;
     }
   return out;
