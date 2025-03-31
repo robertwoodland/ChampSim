@@ -183,12 +183,13 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     interface pred = predIfc;
 
     
-    method Action update(Bool taken, PerceptronTrainInfo train, Bool mispred); 
+    
+    method Action update(Bool taken, PerceptronTrainInfo train, Bool mispred) if (!resetHist); 
         // update history if mispred
         if (mispred) begin
             PerceptronGHist newHist = truncate({pack(taken), train.gHist} >> 1);
             global_history.redirect(newHist);
-        end
+        end 
     
         // TODO (RW): Only train if below training threshold. Paper says threshold = 1.93 * branch history + 14. This could be a power optimisation. Test with and without, measure impact.
         
