@@ -86,23 +86,25 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     Ehr#(TAdd#(1, SupSize), Bit#(TLog#(TAdd#(SupSize, 1)))) predCnt <- mkEhr(0);
     Ehr#(TAdd#(1, SupSize), Bit#(SupSize)) predRes <- mkEhr(0);
 
-    Reg#(PerceptronsRegIndex) i <- mkReg(0);
+    Reg#(PerceptronsRegIndex) nextInit <- mkReg(0);
     Reg#(Bool) resetHist <- mkReg(True);
     PerceptronWeights zeroWeights = replicate(0);
         
     rule initHistory(resetHist);
-        if (i <= fromInteger(valueOf(PerceptronCount) - 1)) begin
-            histories.upd(i, ph.initHist());
-            weights.upd(i, zeroWeights); // TODO (RW): Consider what happens at start when history is full of Falses.
-            global_weights.upd(i, zeroWeights);
-            // $display("BSV Perceptron Init: Initialised weights %d to %d", i, global_weights.sub((i > 0) ? i-1 : 0)); // Works! (but print makes too slow)
+        if (nextInit <= fromInteger(valueOf(PerceptronCount) - 1)) begin
+            // PerceptronHistory initHist = ph.initHist();
+            // $display("BSV Perceptron Init: Initialised history: %d", initHist);
+            histories.upd(nextInit, ph.initHist());
+            weights.upd(nextInit, zeroWeights); // TODO (RW): Consider what happens at start when history is full of Falses.
+            global_weights.upd(nextInit, zeroWeights);
+            // $display("BSV Perceptron Init: Initialised weights %d to %d", nextInit, global_weights.sub((nextInit > 0) ? nextInit-1 : 0)); // Works! (but print makes too slow)
         end
-        if (i == fromInteger(valueOf(PerceptronCount) - 1)) begin
+        if (nextInit == fromInteger(valueOf(PerceptronCount) - 1)) begin
             $display("BSV Perceptron Init: Initialised all perceptrons & hists");
             resetHist <= False;
         end
 
-        i <= (i == fromInteger(valueOf(PerceptronCount) - 1)) ? 0 : i + 1;
+        nextInit <= (nextInit == fromInteger(valueOf(PerceptronCount) - 1)) ? 0 : nextInit + 1;
 
         // TODO (RW): Should global be done in a separate rule? - just initialise when made
         // TODO (RW): May need to guard things on not resetHist -> method stuff on history can only be done if not resetHist.
