@@ -9,6 +9,7 @@ import Types::*;
 import ProcTypes::*;
 import Vector::*;
 import FIFO::*;
+import FIFOF::*;
 import BrPred::*;
 import Perceptron::*;
 // import GSelectPred::*;
@@ -36,7 +37,8 @@ module mkTestbench(Empty);
     FIFO#(Tuple2#(PerceptronTrainInfo, Bool)) pendingUpdates <- mkSizedFIFO(35);
     
     function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
-      DirPredResult#(PerceptronTrainInfo) pred <- myPredictor.pred[ip].pred(); // TODO (RW): Is Address definitely < SupSize?
+      Bit#(1) supScalarIndex = 0;
+      DirPredResult#(PerceptronTrainInfo) pred <- myPredictor.pred[supScalarIndex].pred();
       // print taken!
       $display("BSV TestFSM Predict IP: %d, taken: %d", ip, pred.taken); // Wrong!
       pendingUpdates.enq(tuple2(pred.train, pred.taken));
