@@ -199,12 +199,13 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         PerceptronWeights g_weights = global_weights.sub(index);
         
         // Increment bias if taken, else decrement
-        local_weights[0] = (taken) ? local_weights[0] + 1 : local_weights[0] - 1;
+        local_weights[0] = (taken) ? boundedPlus(local_weights[0], 1) : boundedPlus(local_weights[0], -1);
+        // TODO (RW): Why isn't this updating (sits at 0)
 
         // Train local and global weights
-        for (Integer i = 1; i < valueOf(PerceptronEntries); i = i + 1) begin
-        local_weights[i] = boundedPlus(local_weights[i], (taken == local_hist[i] ? 1 : -1));
-        g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
+        for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin
+        local_weights[i] = boundedPlus(local_weights[i], (taken == local_hist[i-1] ? 1 : -1));
+        g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i-1] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
         end
 
         // Update weights!
