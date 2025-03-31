@@ -111,7 +111,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     endrule
 
     function PerceptronsRegIndex getIndex(Addr pc); // TODO (RW): Try better hash functions?
-        return truncate(pc >> 2); // TODO (RW): Try as 1 - compressed instructions
+        return truncate(pc >> 1); // compressed instructions
     endfunction
 
     // function PerceptronsRegIndex getIndex(Addr pc, PerceptronGHist gHist);
