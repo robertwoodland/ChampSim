@@ -89,33 +89,59 @@ module mkTestbench(Empty);
 
     Reg#(BranchUpdateInfo) updateInfo <- mkReg(?);
     Reg#(Bit#(8)) prediction <- mkReg(0);
-    Reg#(Message) message <- mkReg(?);
     Reg#(Bit#(8)) pred <- mkRegU();
     Reg#(Bool) debug <- mkReg(?);
-    Stmt stmt = seq 
-        set_file_descriptors;
-        action let a <- $test$plusargs("DEBUG"); debug <= a; endaction
-            while(True) seq
-              action let a <- recieve; message <= convertToMessage(a); endaction
-              if (isPred(message)) seq
-                action let b <- predict(message.PredictReq); pred <= b; endaction
-                prediction <= pred;
-                if(debug) debugPredictionReq(message.PredictReq);
-                branch_pred_resp(prediction, message.PredictReq);  
-              endseq
-              if (!isPred(message)) seq
-                updateInfo <= message.UpdateReq;
-                update(pendingUpdates.first(), (updateInfo.taken == 1)); // TODO (RW): Check that FIFO is in the right order
-                pendingUpdates.deq();
-                // if(debug) debugUpdate(update);
-              endseq
-            endseq
-            /*while(True) seq
-              action let a <- branch_update_req; update <= a; endaction  
-              debugUpdate(convertUpdate(update));
-            endseq*/
-        //my_display(b);
-    endseq;
+    Reg#(Bit#(16)) temp <- mkReg(0);
+    FIFOF#(Message) recieveFIFO <- mkFIFOF1;
+    FIFOF#(Address) predReqFIFO <- mkFIFOF1;
+    Reg#(Bool) init <- mkReg(True);
 
-  mkAutoFSM(stmt);
+    
+    // rule showCycles;
+    //   $display("Cycle. FIFO: %b", predReqFIFO.notEmpty);
+    // endrule
+
+    rule initFsm(init);
+      set_file_descriptors;
+      let a <- $test$plusargs("DEBUG"); 
+      debug <= a;
+      init <= False;
+    endrule
+
+    rule recieveMessage(!init && !predReqFIFO.notEmpty);
+      $display("BSV TestFSM Recieve Message");
+      let a <- recieve; 
+      let message = convertToMessage(a);
+      recieveFIFO.enq(message);
+    endrule
+
+    rule handlePred(isPred(recieveFIFO.first()));
+      let message = recieveFIFO.first();
+      recieveFIFO.deq();
+      $display("BSV TestFSM Predict IP: %d", message.PredictReq);
+      myPredictor.nextPc(pack(message.PredictReq));
+      predReqFIFO.enq(message.PredictReq);      
+    endrule  
+
+    rule handleUpdate(!isPred(recieveFIFO.first()));
+      let message = recieveFIFO.first();
+      recieveFIFO.deq();
+      updateInfo <= message.UpdateReq;
+      $display("BSV TestFSM Update IP: %d, target: %d, taken: %d, Type %d:", updateInfo.ip, updateInfo.target, updateInfo.taken, updateInfo.branch_type);
+      update(pendingUpdates.first(), (updateInfo.taken == 1)); // TODO (RW): Check that FIFO is in the right order
+      pendingUpdates.deq();
+      // $display("BSV TestFSM Update IP: %d, target: %d, taken: %d, Type %d:", updateInfo.ip, updateInfo.target, updateInfo.taken, updateInfo.branch_type);
+      // if(debug) debugUpdate(updateInfo);
+    endrule
+
+    rule doPrediction;
+      $display("BSV TestFSM Prediction Rule");
+      let predReq = predReqFIFO.first();
+      predReqFIFO.deq();
+      let pred <- predict(predReq); 
+      if(debug) debugPredictionReq(predReq);
+      branch_pred_resp(pred, predReq);
+    endrule
+
+  // mkAutoFSM(stmt);
 endmodule
