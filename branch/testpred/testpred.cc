@@ -118,7 +118,6 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
 
 void O3_CPU::last_branch_result(uint64_t ip, uint64_t branch_target, uint8_t taken, uint8_t branch_type)
 {
-    debug_printf("Update %ld, branch target: %ld, taken: %d, branch type: %d, count: %ld\n", ip, branch_target, taken, branch_type, count);
     assert(last_recieved == ip);
 
     unsigned char buff[MSG_LENGTH];
