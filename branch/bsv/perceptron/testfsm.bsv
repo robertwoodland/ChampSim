@@ -40,7 +40,7 @@ module mkTestbench(Empty);
       Bit#(1) supScalarIndex = 0;
       DirPredResult#(PerceptronTrainInfo) pred <- myPredictor.pred[supScalarIndex].pred();
       // print taken!
-      $display("BSV TestFSM Predict IP: %d, taken: %d", ip, pred.taken); // Wrong!
+      // $display("BSV TestFSM Predict IP: %d, taken: %d", ip, pred.taken); // Wrong!
       pendingUpdates.enq(tuple2(pred.train, pred.taken));
       return zeroExtend(pack(pred.taken));
     endactionvalue; // TODO (RW): Could have this write straight to register
@@ -108,8 +108,7 @@ module mkTestbench(Empty);
       init <= False;
     endrule
 
-    rule recieveMessage(!init && !predReqFIFO.notEmpty);
-      $display("BSV TestFSM Recieve Message");
+    rule recieveMessage(!init && !predReqFIFO.notEmpty); // Can only run if FIFO empty
       let a <- recieve; 
       let message = convertToMessage(a);
       recieveFIFO.enq(message);
@@ -118,7 +117,7 @@ module mkTestbench(Empty);
     rule handlePred(isPred(recieveFIFO.first()));
       let message = recieveFIFO.first();
       recieveFIFO.deq();
-      $display("BSV TestFSM Predict IP: %d", message.PredictReq);
+      // $display("BSV TestFSM Predict IP: %d", message.PredictReq);
       myPredictor.nextPc(pack(message.PredictReq));
       predReqFIFO.enq(message.PredictReq);      
     endrule  

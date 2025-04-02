@@ -92,31 +92,23 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
     rule initHistory(resetHist);
         if (nextInit <= fromInteger(valueOf(PerceptronCount) - 1)) begin
-            // PerceptronHistory initHist = ph.initHist();
-            // $display("BSV Perceptron Init: Initialised history: %d", initHist);
             histories.upd(nextInit, ph.initHist());
             weights.upd(nextInit, zeroWeights); // TODO (RW): Consider what happens at start when history is full of Falses.
             global_weights.upd(nextInit, zeroWeights);
-            // $display("BSV Perceptron Init: Initialised weights %d to %d", nextInit, global_weights.sub((nextInit > 0) ? nextInit-1 : 0)); // Works! (but print makes too slow)
         end
         if (nextInit == fromInteger(valueOf(PerceptronCount) - 1)) begin
-            $display("BSV Perceptron Init: Initialised all perceptrons & hists");
+            // $display("BSV Perceptron Init: Initialised all perceptrons & hists");
             resetHist <= False;
         end
 
         nextInit <= (nextInit == fromInteger(valueOf(PerceptronCount) - 1)) ? 0 : nextInit + 1;
 
-        // TODO (RW): Should global be done in a separate rule? - just initialise when made
-        // TODO (RW): May need to guard things on not resetHist -> method stuff on history can only be done if not resetHist.
+        // TODO (RW): Should global (history) be done in a separate rule? - just initialise when made. Is it even done atm?
     endrule
 
     function PerceptronsRegIndex getIndex(Addr pc); // TODO (RW): Try better hash functions?
         return truncate(pc >> 1); // compressed instructions
     endfunction
-
-    // function PerceptronsRegIndex getIndex(Addr pc, PerceptronGHist gHist);
-    //     return {gHist, truncate(pc >> 2)};
-    // endfunction
 
     // Function to compute the perceptron output
     function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
@@ -152,7 +144,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 Bool taken = computePerceptronOutput(weights.sub(index), histories.sub(index), global_weights.sub(index), global_history); // TODO (RW): Work out how to pass
                 // TODO (RW): Need to know how to flush global_history on mispred? Check other predictors that use global (GSelect).
 
-                $display("BSV Perceptron Pred: Taken: %d", taken); // Correct here!
+                // $display("BSV Perceptron Pred %d: Taken: %d", index, taken);
 
                 // record pred result (for global history)
                 predCnt[i] <= predCnt[i] + 1;
@@ -204,8 +196,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
 
         // Train local and global weights
         for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin
-        local_weights[i] = boundedPlus(local_weights[i], (taken == local_hist[i-1] ? 1 : -1));
-        g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i-1] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
+            local_weights[i] = boundedPlus(local_weights[i], (taken == local_hist[i-1] ? 1 : -1));
+            g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i-1] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
         end
 
         // Update weights!
@@ -214,7 +206,9 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
         // Update local history
         local_hist = ph.update(local_hist, taken);
-        $display("BSV Perceptron Update: Local Hist %d Post Update: %b", index, local_hist);
+        // $display("BSV Global Weights Post Update %d: %b", index, g_weights);
+        // $display("BSV Perceptron Update: Local Hist %d Post Update: %b", index, local_hist);
+        // $display("BSV Perceptron Update: Local Weights %d: %b", index, local_weights);
 
         histories.upd(index, local_hist);
     endmethod
