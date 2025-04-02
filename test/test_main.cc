@@ -193,6 +193,36 @@ TEST(PerceptronTests, PredInnerTTest)
   }
 }
 
+// Check that updates are made to the correct local history (black box)
+TEST(PerceptronTests, PredLocalTest)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor for two branches
+  for (uint64_t count = 1; count < 100; count++) {
+    // predict 1
+    out = cpu.predict_branch(ip);
+    // update 1
+    cpu.last_branch_result(ip, 0, 1, 3);
+    // predict 2
+    out = cpu.predict_branch(ip + 10);
+    // update 2
+    cpu.last_branch_result(ip + 10, 8, 0, 3);
+  }
+
+  // Assert that they trained correctly
+  // predict 1
+  out = cpu.predict_branch(ip);
+  EXPECT_EQ(out, 1);
+
+  // predict 2
+  out = cpu.predict_branch(ip + 10);
+  EXPECT_EQ(out, 0);
+}
+
 // Check performance under aliasing branch addresses
 
 int main(int argc, char** argv)
