@@ -126,16 +126,13 @@ module mkTestbench(Empty);
     rule handleUpdate(!isPred(recieveFIFO.first()));
       let message = recieveFIFO.first();
       recieveFIFO.deq();
-      updateInfo <= message.UpdateReq;
-      $display("BSV TestFSM Update IP: %d, target: %d, taken: %d, Type %d:", updateInfo.ip, updateInfo.target, updateInfo.taken, updateInfo.branch_type);
-      update(pendingUpdates.first(), (updateInfo.taken == 1)); // TODO (RW): Check that FIFO is in the right order
+      // $display("BSV TestFSM Update IP: %d, target: %d, taken: %d, Type %d:", message.UpdateReq.ip, message.UpdateReq.target, message.UpdateReq.taken, message.UpdateReq.branch_type);
+      update(pendingUpdates.first(), (message.UpdateReq.taken == 1)); // TODO (RW): Check that FIFO is in the right order
       pendingUpdates.deq();
-      // $display("BSV TestFSM Update IP: %d, target: %d, taken: %d, Type %d:", updateInfo.ip, updateInfo.target, updateInfo.taken, updateInfo.branch_type);
-      // if(debug) debugUpdate(updateInfo);
     endrule
 
     rule doPrediction;
-      $display("BSV TestFSM Prediction Rule");
+      // $display("BSV TestFSM Prediction Rule");
       let predReq = predReqFIFO.first();
       predReqFIFO.deq();
       let pred <- predict(predReq); 
