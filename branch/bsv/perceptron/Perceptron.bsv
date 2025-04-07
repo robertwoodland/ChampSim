@@ -118,7 +118,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin // TODO (RW): check loop boundary
             sum = boundedPlus(sum, (history[i-1] ? extend(weight[i]) : extend(-weight[i]))); // Think about hardware this implies. - log (128) = 9 deep?
             // TODO (RW): Add parameter to choose how much to use global history (multiplier)
-            sum = boundedPlus(sum, ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])) / 4); // TODO (RW): Use correct multiplier
+            sum = boundedPlus(sum, ((gHist[i-1] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])) / 4); // TODO (RW): Use correct multiplier. 
+            // TODO (RW): Don't need to misalign for ghist as not using a global bias
         end
         return sum >= 0;
     endfunction
