@@ -114,9 +114,9 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
         let gHist = global_hist.history; // Bit#(...)
 
-        Int#(16) sum = 0; // extend(weight[0]); // Bias weight - TODO (RW): check this can't overflow.
-        for (Integer i = 1; i < valueOf(PerceptronEntries); i = i + 1) begin // TODO (RW): check loop boundary
-            sum = boundedPlus(sum, (history[i] ? extend(weight[i]) : extend(-weight[i]))); // Think about hardware this implies. - log (128) = 9 deep?
+        Int#(16) sum = extend(weight[0]); // Bias
+        for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin // TODO (RW): check loop boundary
+            sum = boundedPlus(sum, (history[i-1] ? extend(weight[i]) : extend(-weight[i]))); // Think about hardware this implies. - log (128) = 9 deep?
             // TODO (RW): Add parameter to choose how much to use global history (multiplier)
             sum = boundedPlus(sum, ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])) / 4); // TODO (RW): Use correct multiplier
         end
