@@ -5,6 +5,7 @@ import Vector::*;
 import BrPred::*;
 import GlobalBrHistReg::*;
 import Ehr::*;
+import Real :: * ;
 
 export PerceptronTrainInfo(..);
 export mkPerceptron;
@@ -79,6 +80,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     RegFile#(PerceptronsRegIndex, PerceptronWeights) global_weights <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1)); 
     
     Reg#(Addr) pc_reg <- mkRegU;
+    Reg#(Int#(16)) trainCount <- mkReg(0); // TODO (RW): Choose a proper type for this that can't be too small for PerceptronEntries
     // TODO (RW): Decide max weight size and prevent overflow. 8 suggested in paper.
     // TODO (RW): Allow size of global history to be different to that of each local history
     
@@ -202,52 +204,40 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // TODO (RW): Why isn't this updating (sits at 0)
 
         // Train local and global weights
- 
-        Bool localCorrelationPos, globCorrelationPos;
-        Int#(8) localInc, globInc;
-        for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin
-            // Ensure that incrementing isn't adding 1, but incrementing the magnitude (-ve gets more -ve)
-            // if (local_weights[i] != 0) begin
-            //     localCorrelationPos = ((local_hist[i-1] ? 1 : -1) * local_weights[i]) > 0;
-            //     localInc = (local_weights[i] > 0) ? 1 : -1;
-            //     local_weights[i] = boundedPlus(local_weights[i], (localCorrelationPos == taken) ? localInc : -localInc);
-            // end else begin
-            //     local_weights[i] = (local_hist[i-1] == taken) ? 1 : -1;
-            // end
-            
-            // if (g_weights[i] != 0) begin
-            //     globCorrelationPos = (((train.gHist[i-1] != 0) ? 1 : -1) * g_weights[i]) > 0;
-            //     globInc = (g_weights[i] > 0) ? 1 : -1;
-            //     g_weights[i] = boundedPlus(g_weights[i], (globCorrelationPos == taken) ? globInc : -globInc);
-            // end else begin
-            //     g_weights[i] = ((train.gHist[i-1] != 0) == taken) ? 1 : -1;
-            // end
-            // Fails PerceptronTests.PredPatternTest due to small positive weights on 0s outweighing large positive weight on every 5th 1.
+        
+        // Bool localCorrelationPos, globCorrelationPos;
+        // Int#(8) localInc, globInc;
+        if (mispred || (trainCount < fromInteger(trunc(1.93 * (fromInteger(valueOf(PerceptronEntries) + 14)))))) begin
+            for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin 
+                local_weights[i] = boundedPlus(local_weights[i], ((local_hist[i-1] == taken) ? 1 : -1));
+                g_weights[i] = boundedPlus(g_weights[i], (((train.gHist[i-1] != 0) == taken) ? 1 : -1)); 
 
+                // // Penalise incorrect weights by subtracting 10 instead of 1.
+                // if (local_weights[i] != 0) begin
+                //     localCorrelationPos = ((local_hist[i-1] ? 1 : -1) * local_weights[i]) > 0;
+                //     localInc = (local_weights[i] > 0) ? 1 : -1;
+                //     local_weights[i] = boundedPlus(local_weights[i], localInc * ((localCorrelationPos == taken) ? 1 : -10));
+                // end else begin
+                //     local_weights[i] = (local_hist[i-1] == taken) ? 1 : -1;
+                // end
+                
+                // if (g_weights[i] != 0) begin
+                //     globCorrelationPos = (((train.gHist[i-1] != 0) ? 1 : -1) * g_weights[i]) > 0;
+                //     globInc = (g_weights[i] > 0) ? 1 : -1;
+                //     g_weights[i] = boundedPlus(g_weights[i], globInc * ((globCorrelationPos == taken) ? 1 : -10));
+                // end else begin
+                //     g_weights[i] = ((train.gHist[i-1] != 0) == taken) ? 1 : -1;
+                // end
+            end
 
-            // Penalise incorrect weights by subtracting 10 instead of 1.
-            if (local_weights[i] != 0) begin
-                localCorrelationPos = ((local_hist[i-1] ? 1 : -1) * local_weights[i]) > 0;
-                // localInc = (localCorrelationPos) ? 1 : -1;
-                localInc = (local_weights[i] > 0) ? 1 : -1;
-                local_weights[i] = boundedPlus(local_weights[i], localInc * ((localCorrelationPos == taken) ? 1 : -10));
-            end else begin
-                local_weights[i] = (local_hist[i-1] == taken) ? 1 : -1;
-            end
-            
-            if (g_weights[i] != 0) begin
-                globCorrelationPos = (((train.gHist[i-1] != 0) ? 1 : -1) * g_weights[i]) > 0;
-                globInc = (g_weights[i] > 0) ? 1 : -1;
-                g_weights[i] = boundedPlus(g_weights[i], globInc * ((globCorrelationPos == taken) ? 1 : -10));
-            end else begin
-                g_weights[i] = ((train.gHist[i-1] != 0) == taken) ? 1 : -1;
-            end
+        
+            // Update weights!
+            global_weights.upd(index, g_weights);
+            trainCount <= boundedPlus(trainCount, 1);
 
         end
-
-        // Update weights!
+        
         weights.upd(index, local_weights);
-        global_weights.upd(index, g_weights);
         
         // Update local history
         local_hist = ph.update(local_hist, taken);

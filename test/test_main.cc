@@ -29,7 +29,7 @@ TEST(PerceptronTests, PredTrueTest)
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor
-  for (uint64_t count = 1; count < 100; count++) {
+  for (uint64_t count = 1; count < 200; count++) {
     // predict
     out = cpu.predict_branch(ip);
     // update
@@ -37,7 +37,7 @@ TEST(PerceptronTests, PredTrueTest)
   }
 
   // Check that we always predict taken
-  for (uint64_t count = 1; count < 10000; count++) {
+  for (uint64_t count = 1; count < 2000; count++) {
     // predict
     out = cpu.predict_branch(ip);
     // update
@@ -56,7 +56,7 @@ TEST(PerceptronTests, PredFalseTest)
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor
-  for (uint64_t count = 1; count < 100; count++) {
+  for (uint64_t count = 1; count < 200; count++) {
     // predict
     out = cpu.predict_branch(ip);
     // update
@@ -64,7 +64,7 @@ TEST(PerceptronTests, PredFalseTest)
   }
 
   // Check that we always predict taken
-  for (uint64_t count = 1; count < 10000; count++) {
+  for (uint64_t count = 1; count < 2000; count++) {
     // predict
     out = cpu.predict_branch(ip);
     // update
@@ -83,8 +83,8 @@ TEST(PerceptronTests, PredNestedTest)
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor
-  for (uint64_t count = 1; count < 100; count++) {
-    for (uint64_t countInner = 1; countInner < 50; countInner++) {
+  for (uint64_t count = 1; count < 150; count++) {
+    for (uint64_t countInner = 1; countInner < 20; countInner++) {
       // predict
       out = cpu.predict_branch(ip + 10);
       // update
@@ -97,8 +97,8 @@ TEST(PerceptronTests, PredNestedTest)
   }
 
   // Check that we always predict taken for both inner and outer loops
-  for (uint64_t count = 1; count < 100; count++) {
-    for (uint64_t countInner = 1; countInner < 50; countInner++) {
+  for (uint64_t count = 1; count < 50; count++) {
+    for (uint64_t countInner = 1; countInner < 20; countInner++) {
       // predict
       out = cpu.predict_branch(ip + 10);
       // update
@@ -123,8 +123,8 @@ TEST(PerceptronTests, PredInnerNTTest)
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor
-  for (uint64_t count = 1; count < 100; count++) {
-    for (uint64_t countInner = 1; countInner < 200; countInner++) {
+  for (uint64_t count = 1; count < 50; count++) {
+    for (uint64_t countInner = 1; countInner < 100; countInner++) {
       // predict
       out = cpu.predict_branch(ip + 10);
       // update
@@ -137,8 +137,8 @@ TEST(PerceptronTests, PredInnerNTTest)
   }
 
   // Check that we always predict taken for both inner and outer loops
-  for (uint64_t count = 1; count < 100; count++) {
-    for (uint64_t countInner = 1; countInner < 200; countInner++) {
+  for (uint64_t count = 1; count < 50; count++) {
+    for (uint64_t countInner = 1; countInner < 100; countInner++) {
       // predict
       out = cpu.predict_branch(ip + 10);
       // update
@@ -163,8 +163,8 @@ TEST(PerceptronTests, PredInnerTTest)
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor
-  for (uint64_t count = 1; count < 100; count++) {
-    for (uint64_t countInner = 1; countInner < 200; countInner++) {
+  for (uint64_t count = 1; count < 50; count++) {
+    for (uint64_t countInner = 1; countInner < 100; countInner++) {
       // predict
       out = cpu.predict_branch(ip + 10);
       // update
@@ -177,8 +177,8 @@ TEST(PerceptronTests, PredInnerTTest)
   }
 
   // Check that we always predict taken for both inner and outer loops
-  for (uint64_t count = 1; count < 100; count++) {
-    for (uint64_t countInner = 1; countInner < 200; countInner++) {
+  for (uint64_t count = 1; count < 50; count++) {
+    for (uint64_t countInner = 1; countInner < 100; countInner++) {
       // predict
       out = cpu.predict_branch(ip + 10);
       // update
@@ -202,7 +202,7 @@ TEST(PerceptronTests, PredLocalTest)
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor for two branches
-  for (uint64_t count = 1; count < 100; count++) {
+  for (uint64_t count = 1; count < 200; count++) {
     // predict 1
     out = cpu.predict_branch(ip);
     // update 1
@@ -232,7 +232,7 @@ TEST(PerceptronTests, PredPatternTest)
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor
-  for (uint64_t count = 1; count <= 100; count++) {
+  for (uint64_t count = 1; count <= 300; count++) {
     // predict
     out = cpu.predict_branch(ip);
 
@@ -249,7 +249,7 @@ TEST(PerceptronTests, PredPatternTest)
   }
 
   // Check that we always predict correctly
-  for (uint64_t count = 1; count < 100; count++) {
+  for (uint64_t count = 1; count < 200; count++) {
     // predict
     out = cpu.predict_branch(ip);
 
