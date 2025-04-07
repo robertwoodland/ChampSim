@@ -198,7 +198,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         PerceptronWeights g_weights = global_weights.sub(index);
         
         // Increment bias if taken, else decrement
-        local_weights[0] = (taken) ? boundedPlus(local_weights[0], 1) : boundedPlus(local_weights[0], -1);
+        local_weights[0] = boundedPlus(local_weights[0], ((taken) ? 1 : -1));
         // TODO (RW): Why isn't this updating (sits at 0)
 
         // Train local and global weights
