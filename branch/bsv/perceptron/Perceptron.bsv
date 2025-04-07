@@ -142,6 +142,10 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 // let index = getIndex(offsetPc(pc_reg, i), gHist);
 
                 let index = getIndex(offsetPc(pc_reg, i));
+
+                // In pred, most recent is correct
+                PerceptronGHist globHist = global_history.history;                
+
                 Bool taken = computePerceptronOutput(weights.sub(index), histories.sub(index), global_weights.sub(index), global_history); // TODO (RW): Work out how to pass
                 // TODO (RW): Need to know how to flush global_history on mispred? Check other predictors that use global (GSelect).
 
@@ -156,7 +160,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 return DirPredResult {
                     taken: taken,
                     train: PerceptronTrainInfo {
-                        gHist: gHist,
+                        gHist: globHist,
                         index: index
                     }
                 };
