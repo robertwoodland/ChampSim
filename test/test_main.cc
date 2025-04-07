@@ -223,6 +223,48 @@ TEST(PerceptronTests, PredLocalTest)
   EXPECT_EQ(out, 0);
 }
 
+// Check repeated patterns are predicted well (black box)
+TEST(PerceptronTests, PredPatternTest)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 100; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 5 == 0) {
+      // update
+      printf("Test: Taken\n");
+      fflush(stdout);
+      cpu.last_branch_result(ip, 0, 1, 3);
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 100; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 5 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+    }
+  }
+}
+
 // Check performance under aliasing branch addresses
 
 int main(int argc, char** argv)

@@ -182,6 +182,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     
     
     method Action update(Bool taken, PerceptronTrainInfo train, Bool mispred) if (!resetHist); 
+        let index = train.index; // already hashed
+        
         // update history if mispred
         if (mispred) begin
             PerceptronGHist newHist = truncate({pack(taken), train.gHist} >> 1);
@@ -190,7 +192,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     
         // TODO (RW): Only train if below training threshold. Paper says threshold = 1.93 * branch history + 14. This could be a power optimisation. Test with and without, measure impact.
         
-        let index = train.index; // already hashed
+        
         let local_hist = histories.sub(index);
         PerceptronWeights local_weights = weights.sub(index);
         PerceptronWeights g_weights = global_weights.sub(index);
@@ -200,9 +202,47 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // TODO (RW): Why isn't this updating (sits at 0)
 
         // Train local and global weights
+ 
+        Bool localCorrelationPos, globCorrelationPos;
+        Int#(8) localInc, globInc;
         for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin
-            local_weights[i] = boundedPlus(local_weights[i], (taken == local_hist[i-1] ? 1 : -1));
-            g_weights[i] = boundedPlus(g_weights[i], (taken == (train.gHist[i-1] != 0) ? 1 : -1)); // TODO (RW): Check that newHist doesn't interfere with logic for training
+            // Ensure that incrementing isn't adding 1, but incrementing the magnitude (-ve gets more -ve)
+            // if (local_weights[i] != 0) begin
+            //     localCorrelationPos = ((local_hist[i-1] ? 1 : -1) * local_weights[i]) > 0;
+            //     localInc = (local_weights[i] > 0) ? 1 : -1;
+            //     local_weights[i] = boundedPlus(local_weights[i], (localCorrelationPos == taken) ? localInc : -localInc);
+            // end else begin
+            //     local_weights[i] = (local_hist[i-1] == taken) ? 1 : -1;
+            // end
+            
+            // if (g_weights[i] != 0) begin
+            //     globCorrelationPos = (((train.gHist[i-1] != 0) ? 1 : -1) * g_weights[i]) > 0;
+            //     globInc = (g_weights[i] > 0) ? 1 : -1;
+            //     g_weights[i] = boundedPlus(g_weights[i], (globCorrelationPos == taken) ? globInc : -globInc);
+            // end else begin
+            //     g_weights[i] = ((train.gHist[i-1] != 0) == taken) ? 1 : -1;
+            // end
+            // Fails PerceptronTests.PredPatternTest due to small positive weights on 0s outweighing large positive weight on every 5th 1.
+
+
+            // Penalise incorrect weights by subtracting 10 instead of 1.
+            if (local_weights[i] != 0) begin
+                localCorrelationPos = ((local_hist[i-1] ? 1 : -1) * local_weights[i]) > 0;
+                // localInc = (localCorrelationPos) ? 1 : -1;
+                localInc = (local_weights[i] > 0) ? 1 : -1;
+                local_weights[i] = boundedPlus(local_weights[i], localInc * ((localCorrelationPos == taken) ? 1 : -10));
+            end else begin
+                local_weights[i] = (local_hist[i-1] == taken) ? 1 : -1;
+            end
+            
+            if (g_weights[i] != 0) begin
+                globCorrelationPos = (((train.gHist[i-1] != 0) ? 1 : -1) * g_weights[i]) > 0;
+                globInc = (g_weights[i] > 0) ? 1 : -1;
+                g_weights[i] = boundedPlus(g_weights[i], globInc * ((globCorrelationPos == taken) ? 1 : -10));
+            end else begin
+                g_weights[i] = ((train.gHist[i-1] != 0) == taken) ? 1 : -1;
+            end
+
         end
 
         // Update weights!
