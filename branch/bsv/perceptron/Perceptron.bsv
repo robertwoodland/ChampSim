@@ -10,6 +10,7 @@ import Real :: * ;
 export PerceptronTrainInfo(..);
 export mkPerceptron;
 export PerceptronEntries;
+export PerceptronGHistEntries;
 export PerceptronGHist;
 export PerceptronIndex;
 export PerceptronIndexWidth;
@@ -21,10 +22,12 @@ export AddrWidth;
 
 // Local Perceptron Typedefs
 typedef 63 PerceptronEntries; // Numeric: Size of perceptron (length of history and weights) - typically 4 to 66 depending on hardware budget.
-typedef Bit#(PerceptronEntries) PerceptronGHist; // Value: Bits used as the global history.
-typedef GlobalBrHistReg#(PerceptronEntries) PerceptronGHistReg; // Register: Global history register.
 typedef TLog#(TAdd#(PerceptronEntries, 1)) PerceptronIndexWidth; // Numeric: Number of bits to be used for indexing history and weights. 1 is to ensure index big enough to deal with biases.
 typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the index for history and weights.
+
+typedef PerceptronEntries PerceptronGHistEntries; // Numeric: Size of global history
+typedef Bit#(PerceptronGHistEntries) PerceptronGHist; // Value: Bits used as the global history.
+typedef GlobalBrHistReg#(PerceptronGHistEntries) PerceptronGHistReg; // Register: Global history register.
 
 typedef SizeOf#(Addr) AddrWidth; // Numeric: Number of bits in an address.
 typedef TExp#(AddrWidth) AddrRange; // Numeric: Number of addresses in the range.
@@ -82,7 +85,6 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     Reg#(Addr) pc_reg <- mkRegU;
     Reg#(Int#(16)) trainCount <- mkReg(0); // TODO (RW): Choose a proper type for this that can't be too small for PerceptronEntries
     // TODO (RW): Decide max weight size and prevent overflow. 8 suggested in paper.
-    // TODO (RW): Allow size of global history to be different to that of each local history
     
     // EHR to record predict results in this cycle
     Ehr#(TAdd#(1, SupSize), Bit#(TLog#(TAdd#(SupSize, 1)))) predCnt <- mkEhr(0);
