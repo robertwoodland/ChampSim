@@ -25,6 +25,7 @@ typedef 63 PerceptronEntries; // Numeric: Size of perceptron (length of history 
 typedef TLog#(TAdd#(PerceptronEntries, 1)) PerceptronIndexWidth; // Numeric: Number of bits to be used for indexing history and weights. 1 is to ensure index big enough to deal with biases.
 typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the index for history and weights.
 
+// TODO (RW): Allow size of global history to be different to that of each local history
 typedef PerceptronEntries PerceptronGHistEntries; // Numeric: Size of global history
 typedef Bit#(PerceptronGHistEntries) PerceptronGHist; // Value: Bits used as the global history.
 typedef GlobalBrHistReg#(PerceptronGHistEntries) PerceptronGHistReg; // Register: Global history register.
@@ -45,6 +46,7 @@ typedef struct {
 
 typedef Vector#(PerceptronEntries, Bool) PerceptronHistory;
 typedef Vector#(TAdd#(PerceptronEntries, 1), Int#(8)) PerceptronWeights;
+typedef Vector#(PerceptronGHistEntries, Int#(8)) PerceptronGWeights;
 
 interface PerceptronHistorian; // Not stateful
     method PerceptronHistory update(PerceptronHistory hist, Bool taken);
@@ -80,7 +82,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     RegFile#(PerceptronsRegIndex, PerceptronHistory) histories <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1));
     PerceptronGHistReg global_history <- mkGlobalBrHistReg;
     RegFile#(PerceptronsRegIndex, PerceptronWeights) weights <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1)); 
-    RegFile#(PerceptronsRegIndex, PerceptronWeights) global_weights <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1)); 
+    RegFile#(PerceptronsRegIndex, PerceptronGWeights) global_weights <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1)); 
     
     Reg#(Addr) pc_reg <- mkRegU;
     Reg#(Int#(16)) trainCount <- mkReg(0); // TODO (RW): Choose a proper type for this that can't be too small for PerceptronEntries
@@ -93,12 +95,13 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     Reg#(PerceptronsRegIndex) nextInit <- mkReg(0);
     Reg#(Bool) resetHist <- mkReg(True);
     PerceptronWeights zeroWeights = replicate(0);
+    PerceptronGWeights zeroGWeights = replicate(0);
         
     rule initHistory(resetHist);
         if (nextInit <= fromInteger(valueOf(PerceptronCount) - 1)) begin
             histories.upd(nextInit, ph.initHist());
             weights.upd(nextInit, zeroWeights); // TODO (RW): Consider what happens at start when history is full of Falses.
-            global_weights.upd(nextInit, zeroWeights);
+            global_weights.upd(nextInit, zeroGWeights);
         end
         if (nextInit == fromInteger(valueOf(PerceptronCount) - 1)) begin
             // $display("BSV Perceptron Init: Initialised all perceptrons & hists");
@@ -115,15 +118,16 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     endfunction
 
     // Function to compute the perceptron output
-    function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
+    function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
         let gHist = global_hist.history; // Bit#(...)
 
         Int#(16) sum = extend(weight[0]); // Bias
         for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin // TODO (RW): check loop boundary
             sum = boundedPlus(sum, (history[i-1] ? extend(weight[i]) : extend(-weight[i]))); // Think about hardware this implies. - log (128) = 9 deep?
-            // TODO (RW): Add parameter to choose how much to use global history (multiplier)
-            sum = boundedPlus(sum, ((gHist[i-1] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])) / 4); // TODO (RW): Use correct multiplier. 
+        end
+        for (Integer i = 0; i < valueOf(PerceptronGHistEntries); i = i + 1) begin // TODO (RW): check loop boundary
             // TODO (RW): Don't need to misalign for ghist as not using a global bias
+            sum = boundedPlus(sum, ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])));
         end
         return sum >= 0;
     endfunction
@@ -199,7 +203,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
         let local_hist = histories.sub(index);
         PerceptronWeights local_weights = weights.sub(index);
-        PerceptronWeights g_weights = global_weights.sub(index);
+        PerceptronGWeights g_weights = global_weights.sub(index);
         
         // Increment bias if taken, else decrement
         local_weights[0] = boundedPlus(local_weights[0], ((taken) ? 1 : -1));
@@ -209,11 +213,10 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
         // Bool localCorrelationPos, globCorrelationPos;
         // Int#(8) localInc, globInc;
-        if (mispred || (trainCount < fromInteger(trunc(1.93 * (fromInteger(valueOf(PerceptronEntries) + 14)))))) begin
+        if (mispred || (trainCount < fromInteger(trunc(1.93 * (fromInteger(valueOf(PerceptronEntries))) + 14)))) begin
             for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin 
                 local_weights[i] = boundedPlus(local_weights[i], ((local_hist[i-1] == taken) ? 1 : -1));
-                g_weights[i] = boundedPlus(g_weights[i], (((train.gHist[i-1] != 0) == taken) ? 1 : -1)); 
-
+                
                 // // Penalise incorrect weights by subtracting 10 instead of 1.
                 // if (local_weights[i] != 0) begin
                 //     localCorrelationPos = ((local_hist[i-1] ? 1 : -1) * local_weights[i]) > 0;
@@ -223,6 +226,10 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 //     local_weights[i] = (local_hist[i-1] == taken) ? 1 : -1;
                 // end
                 
+            end
+            
+            for (Integer i = 0; i < valueOf(PerceptronGHistEntries); i = i + 1) begin
+                g_weights[i] = boundedPlus(g_weights[i], (((train.gHist[i] != 0) == taken) ? 1 : -1)); 
                 // if (g_weights[i] != 0) begin
                 //     globCorrelationPos = (((train.gHist[i-1] != 0) ? 1 : -1) * g_weights[i]) > 0;
                 //     globInc = (g_weights[i] > 0) ? 1 : -1;
