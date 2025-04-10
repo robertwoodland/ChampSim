@@ -239,8 +239,6 @@ TEST(PerceptronTests, PredPatternTest)
     // Taken every 5th time
     if (count % 5 == 0) {
       // update
-      printf("Test: Taken\n");
-      fflush(stdout);
       cpu.last_branch_result(ip, 0, 1, 3);
     } else {
       // update
@@ -281,5 +279,4 @@ int main(int argc, char** argv)
 
 // Tests for bias?
 // Tests against random workflow
-// Tests against repeated loops
 // Etc
