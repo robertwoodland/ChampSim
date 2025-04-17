@@ -9,6 +9,7 @@ import Types::*;
 import ProcTypes::*;
 import Vector::*;
 import FIFO::*;
+import FIFOF::*;
 import BrPred::*;
 // import Bht::*;
 // import GSelectPred::*;
@@ -36,7 +37,8 @@ module mkTestbench(Empty);
     FIFO#(Tuple2#(TourTrainInfo, Bool)) pendingUpdates <- mkSizedFIFO(35);
     
     function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
-      let pred <- myPredictor.pred[0].pred();
+      Bit#(1) supScalarIndex = 0;
+      DirPredResult#(TourTrainInfo) pred <- myPredictor.pred[supScalarIndex].pred();
       pendingUpdates.enq(tuple2(pred.train, pred.taken));
       return zeroExtend(pack(pred.taken));
     endactionvalue; // TODO (RW): Could have this write straight to register
@@ -83,35 +85,49 @@ module mkTestbench(Empty);
       return x;
     endfunction
 
+    
     Reg#(BranchUpdateInfo) updateInfo <- mkReg(?);
     Reg#(Bit#(8)) prediction <- mkReg(0);
-    Reg#(Message) message <- mkReg(?);
     Reg#(Bit#(8)) pred <- mkRegU();
     Reg#(Bool) debug <- mkReg(?);
-    Stmt stmt = seq 
-        set_file_descriptors;
-        action let a <- $test$plusargs("DEBUG"); debug <= a; endaction
-            while(True) seq
-              action let a <- recieve; message <= convertToMessage(a); endaction
-              if (isPred(message)) seq
-                action let b <- predict(message.PredictReq); pred <= b; endaction
-                prediction <= pred;
-                if(debug) debugPredictionReq(message.PredictReq);
-                branch_pred_resp(prediction, message.PredictReq);  
-              endseq
-              if (!isPred(message)) seq
-                updateInfo <= message.UpdateReq;
-                update(pendingUpdates.first(), (updateInfo.taken == 1)); // TODO (RW): Check that FIFO is in the right order
-                pendingUpdates.deq();
-                // if(debug) debugUpdate(update);
-              endseq
-            endseq
-            /*while(True) seq
-              action let a <- branch_update_req; update <= a; endaction  
-              debugUpdate(convertUpdate(update));
-            endseq*/
-        //my_display(b);
-    endseq;
+    Reg#(Bit#(16)) temp <- mkReg(0);
+    FIFOF#(Message) recieveFIFO <- mkFIFOF1;
+    FIFOF#(Address) predReqFIFO <- mkFIFOF1;
+    Reg#(Bool) init <- mkReg(True);
 
-  mkAutoFSM(stmt);
+    rule initFsm(init);
+      set_file_descriptors;
+      let a <- $test$plusargs("DEBUG"); 
+      debug <= a;
+      init <= False;
+    endrule
+
+    rule recieveMessage(!init && !predReqFIFO.notEmpty); // Can only run if FIFO empty
+      let a <- recieve; 
+      let message = convertToMessage(a);
+      recieveFIFO.enq(message);
+    endrule
+
+    rule handlePred(isPred(recieveFIFO.first()));
+      let message = recieveFIFO.first();
+      recieveFIFO.deq();
+      myPredictor.nextPc(pack(message.PredictReq));
+      predReqFIFO.enq(message.PredictReq);      
+    endrule  
+
+    rule handleUpdate(!isPred(recieveFIFO.first()));
+      let message = recieveFIFO.first();
+      recieveFIFO.deq();
+      update(pendingUpdates.first(), (message.UpdateReq.taken == 1));
+      pendingUpdates.deq();
+    endrule
+
+    rule doPrediction;
+      let predReq = predReqFIFO.first();
+      predReqFIFO.deq();
+      let pred <- predict(predReq); 
+      if(debug) debugPredictionReq(predReq);
+      branch_pred_resp(pred, predReq);
+    endrule
+
 endmodule
