@@ -5,7 +5,7 @@ import Vector::*;
 import BrPred::*;
 import GlobalBrHistReg::*;
 import Ehr::*;
-import Real :: * ;
+import Real::* ;
 
 export PerceptronTrainInfo(..);
 export mkPerceptron;
@@ -113,8 +113,25 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // TODO (RW): Should global (history) be done in a separate rule? - just initialise when made. Is it even done atm?
     endrule
 
-    function PerceptronsRegIndex getIndex(Addr pc); // TODO (RW): Try better hash functions?
-        return truncate(pc >> 1); // compressed instructions
+    // function PerceptronsRegIndex getIndex(Addr pc); // TODO (RW): Try better hash functions?
+    //     return truncate(pc >> 1); // compressed instructions
+    // endfunction
+
+    // New Pred 1 - Bit Mixing
+    function PerceptronsRegIndex getIndex(Addr pc);
+        // Dynamic length based on AddrWidth
+        Bit#(TDiv#(AddrWidth, 2)) low_bits = truncate(pc & ((1 << (valueOf(AddrWidth) / 2)) - 1));
+        Bit#(TDiv#(AddrWidth, 2)) high_bits = truncate((pc >> (valueOf(AddrWidth) / 2)) & ((1 << (valueOf(AddrWidth) / 2)) - 1));
+
+        // Mix the low and high bits using XOR (this helps spread out the values)
+        Bit#(TDiv#(AddrWidth, 2)) mix = low_bits ^ high_bits;
+
+        // Dynamic masking based on PerceptronCount
+        Bit#(TDiv#(AddrWidth, 2)) mask = fromInteger(valueOf(PerceptronCount) - 1); // Power of two constraint
+        PerceptronsRegIndex index = truncate(mix & mask);
+
+        // Return the final index
+        return index;
     endfunction
 
     // Function to compute the perceptron output
