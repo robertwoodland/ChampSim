@@ -229,6 +229,7 @@ TEST(PerceptronTests, PredPatternTest)
   uint8_t out;
   uint64_t ip = 1;
   O3_CPU cpu;
+  uint64_t mispreds = 0;
   cpu.initialize_branch_predictor();
 
   // Warm up the predictor
@@ -240,14 +241,20 @@ TEST(PerceptronTests, PredPatternTest)
     if (count % 5 == 0) {
       // update
       cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
     } else {
       // update
       cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
     }
   }
 
   // Check that we always predict correctly
-  for (uint64_t count = 1; count < 200; count++) {
+  for (uint64_t count = 1; count < 1000; count++) {
     // predict
     out = cpu.predict_branch(ip);
 
@@ -255,12 +262,19 @@ TEST(PerceptronTests, PredPatternTest)
       EXPECT_EQ(out, 1);
       // update
       cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
     } else {
       EXPECT_EQ(out, 0);
       // update
       cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
     }
   }
+  printf("Total mispredictions: %ld\n", mispreds);
 }
 
 // Check performance under aliasing branch addresses
