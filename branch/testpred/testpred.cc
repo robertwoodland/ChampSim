@@ -108,7 +108,7 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
     memcpy(&recieved_ip, &buff[1], 8);
     if(recieved_ip == ip){
       out = buff[0] - '0';
-      printf("Prediction %ld, out: %d\n", ip, out); // - deffo getting 0 sometimes when it shouldn't!
+      // printf("Prediction %ld, out: %d\n", ip, out); // - deffo getting 0 sometimes when it shouldn't!
       count++; last_recieved = ip;
     }
   return out;
