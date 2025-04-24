@@ -117,7 +117,35 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     //     return truncate(pc >> 1); // compressed instructions
     // endfunction
 
-    // New Pred 1 - Bit Mixing
+    // // Bit Mixing
+    // function PerceptronsRegIndex getIndex(Addr pc);
+    //     // Dynamic length based on AddrWidth
+    //     Bit#(TDiv#(AddrWidth, 2)) low_bits = truncate(pc & ((1 << (valueOf(AddrWidth) / 2)) - 1));
+    //     Bit#(TDiv#(AddrWidth, 2)) high_bits = truncate((pc >> (valueOf(AddrWidth) / 2)) & ((1 << (valueOf(AddrWidth) / 2)) - 1));
+
+    //     // Mix the low and high bits using XOR (this helps spread out the values)
+    //     Bit#(TDiv#(AddrWidth, 2)) mix = low_bits ^ high_bits;
+
+    //     // Dynamic masking based on PerceptronCount
+    //     // "Sounds suspicious" - Peter. Mask is a strange idea...
+    //     // Will work to keep within range, but introduces bias.
+    //     // For 17 would only have 4 entries, as only 2 bits with 1s.
+    //     // Need to do something better. Try doing the expensive thing... - MOD(valueOf(PerceptronCount))
+    //     // Could also just clear top bit. Biases a little.
+    //     // Maybe set up a UT that somehow checks hash function. Would be interesting to show in Implementation section.
+    //     // Generate random numbers if possible.
+    //     // To test this, lift this out of the module. - Copy paste code, evaluate in isolation. 
+    //     // Make a module that counts up to 2^31 or whatever. Print hash function output on each, write to file. Generate histogram. Justify this only generates 4 outputs, and that new function is better.
+    //     // Don't spend more than 2-3 hours.
+    //     // Don't worry about timing data.
+    //     Bit#(TDiv#(AddrWidth, 2)) mask = fromInteger(valueOf(PerceptronCount) - 1); // Power of two constraint
+    //     PerceptronsRegIndex index = truncate(mix & mask);
+
+    //     // Return the final index
+    //     return index;
+    // endfunction
+
+    // Bit Mixing Modulus
     function PerceptronsRegIndex getIndex(Addr pc);
         // Dynamic length based on AddrWidth
         Bit#(TDiv#(AddrWidth, 2)) low_bits = truncate(pc & ((1 << (valueOf(AddrWidth) / 2)) - 1));
@@ -126,9 +154,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // Mix the low and high bits using XOR (this helps spread out the values)
         Bit#(TDiv#(AddrWidth, 2)) mix = low_bits ^ high_bits;
 
-        // Dynamic masking based on PerceptronCount
-        Bit#(TDiv#(AddrWidth, 2)) mask = fromInteger(valueOf(PerceptronCount) - 1); // Power of two constraint
-        PerceptronsRegIndex index = truncate(mix & mask);
+        // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
+        PerceptronsRegIndex index = truncate(mix) % fromInteger(valueOf(PerceptronCount));
 
         // Return the final index
         return index;
