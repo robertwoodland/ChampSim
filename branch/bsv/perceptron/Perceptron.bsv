@@ -161,7 +161,23 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     //     return index;
     // endfunction
 
-    // Bit Folding Modulus
+    // // Bit Folding Modulus
+    // function PerceptronsRegIndex getIndex(Addr pc);
+    //     // Break PC into chunks of size PerceptronsRegIndexWidth
+    //     PerceptronsRegIndex folded = 0;
+    //     for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
+    //         PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
+    //         folded = folded ^ chunk;       // XOR fold it in
+    //     end
+
+    //     // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
+    //     folded = folded % fromInteger(valueOf(PerceptronCount));
+        
+    //     // Return the final index
+    //     return folded;
+    // endfunction
+
+    // Bit Mixing Drop MSB
     function PerceptronsRegIndex getIndex(Addr pc);
         // Break PC into chunks of size PerceptronsRegIndexWidth
         PerceptronsRegIndex folded = 0;
@@ -170,8 +186,10 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
             folded = folded ^ chunk;       // XOR fold it in
         end
 
-        // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
-        folded = folded % fromInteger(valueOf(PerceptronCount));
+        // If out of range, drop MSB
+        if (folded >= fromInteger(valueOf(PerceptronCount))) begin
+            folded = (truncate(folded << 1) >> 1);
+        end
         
         // Return the final index
         return folded;
