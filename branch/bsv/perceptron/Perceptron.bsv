@@ -145,21 +145,38 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     //     return index;
     // endfunction
 
-    // Bit Mixing Modulus
-    function PerceptronsRegIndex getIndex(Addr pc);
-        // Dynamic length based on AddrWidth
-        Bit#(TDiv#(AddrWidth, 2)) low_bits = truncate(pc & ((1 << (valueOf(AddrWidth) / 2)) - 1));
-        Bit#(TDiv#(AddrWidth, 2)) high_bits = truncate((pc >> (valueOf(AddrWidth) / 2)) & ((1 << (valueOf(AddrWidth) / 2)) - 1));
+    // // Bit Mixing Modulus
+    // function PerceptronsRegIndex getIndex(Addr pc);
+    //     // Dynamic length based on AddrWidth
+    //     Bit#(TDiv#(AddrWidth, 2)) low_bits = truncate(pc & ((1 << (valueOf(AddrWidth) / 2)) - 1));
+    //     Bit#(TDiv#(AddrWidth, 2)) high_bits = truncate((pc >> (valueOf(AddrWidth) / 2)) & ((1 << (valueOf(AddrWidth) / 2)) - 1));
 
-        // Mix the low and high bits using XOR (this helps spread out the values)
-        Bit#(TDiv#(AddrWidth, 2)) mix = low_bits ^ high_bits;
+    //     // Mix the low and high bits using XOR (this helps spread out the values)
+    //     Bit#(TDiv#(AddrWidth, 2)) mix = low_bits ^ high_bits;
+
+    //     // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
+    //     PerceptronsRegIndex index = truncate(mix) % fromInteger(valueOf(PerceptronCount));
+
+    //     // Return the final index
+    //     return index;
+    // endfunction
+
+    // Bit Folding Modulus
+    function PerceptronsRegIndex getIndex(Addr pc);
+        // Break PC into chunks of size PerceptronsRegIndexWidth
+        PerceptronsRegIndex folded = 0;
+        for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
+            PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
+            folded = folded ^ chunk;       // XOR fold it in
+        end
 
         // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
-        PerceptronsRegIndex index = truncate(mix) % fromInteger(valueOf(PerceptronCount));
-
+        folded = folded % fromInteger(valueOf(PerceptronCount));
+        
         // Return the final index
-        return index;
+        return folded;
     endfunction
+
 
     // Function to compute the perceptron output
     function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
