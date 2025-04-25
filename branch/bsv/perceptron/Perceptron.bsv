@@ -187,7 +187,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         end
 
         // If out of range, drop MSB
-        if (folded >= fromInteger(valueOf(PerceptronCount))) begin
+        if (folded > fromInteger(valueOf(PerceptronCount) - 1)) begin
             folded = (truncate(folded << 1) >> 1);
         end
         
