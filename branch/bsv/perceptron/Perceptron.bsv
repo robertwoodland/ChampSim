@@ -24,6 +24,9 @@ export AddrWidth;
 typedef 63 PerceptronEntries; // Numeric: Size of perceptron (length of history and weights) - typically 4 to 66 depending on hardware budget.
 typedef TLog#(TAdd#(PerceptronEntries, 1)) PerceptronIndexWidth; // Numeric: Number of bits to be used for indexing history and weights. 1 is to ensure index big enough to deal with biases.
 typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the index for history and weights.
+typedef TAdd#(TMul#(PerceptronEntries, 2), 14) Threshold;
+typedef TLog#(Threshold) ThresholdWidth; // Numeric: Number of bits to be used for indexing the training count.
+typedef UInt#(ThresholdWidth) TrainCount; // Value: Bits used as the index for training count.
 
 // TODO (RW): Allow size of global history to be different to that of each local history
 typedef PerceptronEntries PerceptronGHistEntries; // Numeric: Size of global history
@@ -85,7 +88,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     RegFile#(PerceptronsRegIndex, PerceptronGWeights) global_weights <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1)); 
     
     Reg#(Addr) pc_reg <- mkRegU;
-    Reg#(Int#(16)) trainCount <- mkReg(0); // TODO (RW): Choose a proper type for this that can't be too small for PerceptronEntries
+    Reg#(TrainCount) trainCount <- mkReg(0); // TODO (RW): Choose a proper type for this that can't be too small for PerceptronEntries
     // TODO (RW): Decide max weight size and prevent overflow. 8 suggested in paper.
     
     // EHR to record predict results in this cycle
@@ -292,7 +295,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
         // Bool localCorrelationPos, globCorrelationPos;
         // Int#(8) localInc, globInc;
-        if (mispred || (trainCount < fromInteger(trunc(1.93 * (fromInteger(valueOf(PerceptronEntries))) + 14)))) begin
+        if (mispred || (trainCount < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)))) begin
             for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin 
                 local_weights[i] = boundedPlus(local_weights[i], ((local_hist[i-1] == taken) ? 1 : -1));
                 
