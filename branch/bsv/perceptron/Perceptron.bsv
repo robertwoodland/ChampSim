@@ -200,10 +200,6 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 // all previous branch in this cycle must be not taken
                 // otherwise this branch should be on wrong path
                 // because all inst in same cycle are fetched consecutively
-                PerceptronGHist gHist = curGHist >> predCnt[i];
-                
-                // Don't need to do?
-                // let index = getIndex(offsetPc(pc_reg, i), gHist);
 
                 let index = getIndex(offsetPc(pc_reg, i));
 
