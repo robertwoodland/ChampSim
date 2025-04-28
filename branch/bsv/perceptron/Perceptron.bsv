@@ -146,11 +146,12 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     //         folded = folded ^ chunk;       // XOR fold it in
     //     end
 
+    //     Bit#(TAdd#(PerceptronsRegIndexWidth, 1)) temp = zeroExtend(folded);
     //     // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
-    //     folded = folded % fromInteger(valueOf(PerceptronCount));
+    //     temp = temp % fromInteger(valueOf(PerceptronCount));
         
     //     // Return the final index
-    //     return folded;
+    //     return truncate(temp);
     // endfunction
 
     // Bit Folding Drop MSB
