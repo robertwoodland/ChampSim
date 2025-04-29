@@ -134,6 +134,32 @@ void O3_CPU::last_branch_result(uint64_t ip, uint64_t branch_target, uint8_t tak
     return;
 }
 
+#ifdef TEST_MODE
+void O3_CPU::flush_branch_predictor()
+{
+    unsigned char buff[MSG_LENGTH];
+    buff[0] = FLUSH_REQ;
+
+    // // Update way:
+    // contiguous_buff<uint64_t>(ip, buff, MSG_LENGTH, 1);
+    // contiguous_buff<uint64_t>(branch_target, buff, MSG_LENGTH, 9);
+    // buff[17] = taken + '0';
+    // buff[18] = branch_type + '0';
+    // if (write(req_pipe[1], buff, MSG_LENGTH) == -1) {
+    //   perror("Requesting update");
+    // }
+
+    // Pred way:
+    // TODO (RW): Assert that length of write is equal to MSG_LENGTH. 
+    // To do it properly, you should loop and ask for the remaining bytes each time.
+    // assert(MSG_LENGTH == 9); - fails! 
+    if(write(req_pipe[1], std::data(buff), MSG_LENGTH) == -1){
+      perror("Requesting prediction");
+    }
+
+    return;
+}
+#endif
 
 void init_bsim(){
   pid_t pid;

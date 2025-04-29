@@ -320,7 +320,15 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
 
 
     // Perceptron predictor also doesn't need to be flushed
-    method flush = noAction;
-    method flush_done = True;
+    method Action flush if (!resetHist);
+        // Local hist, weights, gweights handled by resetHist
+        resetHist <= True;
+        // GHist
+        PerceptronGHist empty = 0;
+        global_history.redirect(empty);
+    endmethod
+
+    // Not sure if this is some special method meaning `readable', or if it is just a normal read. Test with UTs!
+    method flush_done = !resetHist._read;
 endmodule
 
