@@ -79,8 +79,72 @@ module mkPerceptronHistorianShift(PerceptronHistorian);
     endmethod
 endmodule
 
+
+interface HashFunction;
+    method PerceptronsRegIndex getIndex(Addr pc);
+endinterface
+
+module mkTruncate(HashFunction);
+    method PerceptronsRegIndex getIndex(Addr pc);
+        return truncate(pc >> 1); // compressed instructions
+    endmethod
+endmodule
+
+module mkHybridMod(HashFunction);
+    method PerceptronsRegIndex getIndex(Addr pc);
+        PerceptronsRegIndex folded = 0;
+        UInt#(TAdd#(PerceptronsRegIndexWidth, 1)) count = fromInteger(valueOf(PerceptronCount));
+
+        // If a power of two, just truncate to size
+        if ((count & (count - 1)) == 0) begin
+            folded = truncate(pc >> 1);
+        end else begin
+            // Break PC into chunks of size PerceptronsRegIndexWidth
+            for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
+                PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
+                folded = folded ^ chunk;       // XOR fold it in
+            end
+
+            // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
+            Bit#(TAdd#(PerceptronsRegIndexWidth, 1)) temp = zeroExtend(folded);
+            temp = temp % fromInteger(valueOf(PerceptronCount));
+        end
+
+        // Return the final index
+        return folded;
+    endmethod
+endmodule
+
+module mkHybridDrop(HashFunction);
+    method PerceptronsRegIndex getIndex(Addr pc);
+        PerceptronsRegIndex folded = 0;
+        UInt#(TAdd#(PerceptronsRegIndexWidth, 1)) count = fromInteger(valueOf(PerceptronCount));
+
+        // If a power of two, just truncate to size
+        if ((count & (count - 1)) == 0) begin
+            folded = truncate(pc >> 1);
+        end else begin
+            // Break PC into chunks of size PerceptronsRegIndexWidth
+            for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
+                PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
+                folded = folded ^ chunk;       // XOR fold it in
+            end
+
+            // If out of range, drop MSB
+            if (folded > fromInteger(valueOf(PerceptronCount) - 1)) begin
+                folded = (truncate(folded << 1) >> 1);
+            end
+        end
+
+        // Return the final index
+        return folded;
+    endmethod
+endmodule
+
+
 (* synthesize *)
 module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
+    HashFunction hash <- mkHybridDrop;
     PerceptronHistorian ph <- mkPerceptronHistorianShift;
     RegFile#(PerceptronsRegIndex, PerceptronHistory) histories <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1));
     PerceptronGHistReg global_history <- mkGlobalBrHistReg;
@@ -114,64 +178,9 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         nextInit <= (nextInit == fromInteger(valueOf(PerceptronCount) - 1)) ? 0 : nextInit + 1;
     endrule
 
-    // // Bit Mixing
-    // function PerceptronsRegIndex getIndex(Addr pc);
-    //     // Dynamic length based on AddrWidth
-    //     Bit#(TDiv#(AddrWidth, 2)) low_bits = truncate(pc & ((1 << (valueOf(AddrWidth) / 2)) - 1));
-    //     Bit#(TDiv#(AddrWidth, 2)) high_bits = truncate((pc >> (valueOf(AddrWidth) / 2)) & ((1 << (valueOf(AddrWidth) / 2)) - 1));
-
-    //     // Mix the low and high bits using XOR (this helps spread out the values)
-    //     Bit#(TDiv#(AddrWidth, 2)) mix = low_bits ^ high_bits;
-
-    //     // Dynamic masking based on PerceptronCount
-    //     // TODO (RW): Maybe set up a UT that somehow checks hash function. Would be interesting to show in Implementation section.
-    //     // Generate random numbers if possible.
-    //     // To test this, lift this out of the module. - Copy paste code, evaluate in isolation. 
-    //     // Make a module that counts up to 2^31 or whatever. Print hash function output on each, write to file. Generate histogram. Justify this only generates 4 outputs, and that new function is better.
-    //     // Don't spend more than 2-3 hours.
-    //     // Don't worry about timing data.
-    //     Bit#(TDiv#(AddrWidth, 2)) mask = fromInteger(valueOf(PerceptronCount) - 1); // Power of two constraint
-    //     PerceptronsRegIndex index = truncate(mix & mask);
-
-    //     // Return the final index
-    //     return index;
-    // endfunction
-
-    // // Bit Folding Modulus
-    // function PerceptronsRegIndex getIndex(Addr pc);
-    //     // Break PC into chunks of size PerceptronsRegIndexWidth
-    //     PerceptronsRegIndex folded = 0;
-    //     for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
-    //         PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
-    //         folded = folded ^ chunk;       // XOR fold it in
-    //     end
-
-    //     Bit#(TAdd#(PerceptronsRegIndexWidth, 1)) temp = zeroExtend(folded);
-    //     // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
-    //     temp = temp % fromInteger(valueOf(PerceptronCount));
-        
-    //     // Return the final index
-    //     return truncate(temp);
-    // endfunction
-
-    // Bit Folding Drop MSB
     function PerceptronsRegIndex getIndex(Addr pc);
-        // Break PC into chunks of size PerceptronsRegIndexWidth
-        PerceptronsRegIndex folded = 0;
-        for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
-            PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
-            folded = folded ^ chunk;       // XOR fold it in
-        end
-
-        // If out of range, drop MSB
-        if (folded > fromInteger(valueOf(PerceptronCount) - 1)) begin
-            folded = (truncate(folded << 1) >> 1);
-        end
-        
-        // Return the final index
-        return folded;
+        return hash.getIndex(pc);
     endfunction
-
 
     // Function to compute the perceptron output
     function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.

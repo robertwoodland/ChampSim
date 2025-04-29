@@ -129,6 +129,32 @@ module mkHashTestBench();
         return folded;
     endfunction
 
+    
+    // Hybrid Mod & Truncate
+    function PerceptronsRegIndex getIndexHybridDrop(Addr pc);
+        PerceptronsRegIndex folded = 0;
+        UInt#(TAdd#(PerceptronsRegIndexWidth, 1)) count = fromInteger(valueOf(PerceptronCount));
+
+        // If a power of two, just truncate to size
+        if ((count & (count - 1)) == 0) begin
+            folded = truncate(pc >> 1); 
+        end else begin
+            // Break PC into chunks of size PerceptronsRegIndexWidth
+            for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
+                PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
+                folded = folded ^ chunk;       // XOR fold it in
+            end
+
+            // If out of range, drop MSB
+            if (folded > fromInteger(valueOf(PerceptronCount) - 1)) begin
+                folded = (truncate(folded << 1) >> 1);
+            end
+        end
+        
+        // Return the final index
+        return folded;
+    endfunction
+
 
     // Local variables
     PerceptronsRegIndex index;

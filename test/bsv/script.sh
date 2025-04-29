@@ -2,7 +2,7 @@
 
 # Read the hash.bsv file and extract the required values
 
-HASH=("Truncate" "Mix" "Mod" "Hybrid" "MSB")
+HASH=("Truncate" "Mix" "Mod" "Hybrid" "MSB", "HybridDrop")
 FILE_NAME="./test/bsv/hash.bsv"
 BUILD_COMMAND="bsc -u -sim -elab -keep-fires -aggressive-conditions -no-warn-action-shadowing"
 LINK_COMMAND="bsc -e mkHashTestBench -sim -o hash_bsim"
