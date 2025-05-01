@@ -107,6 +107,7 @@ module mkHybridMod(HashFunction);
             // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
             Bit#(TAdd#(PerceptronsRegIndexWidth, 1)) temp = zeroExtend(folded);
             temp = temp % fromInteger(valueOf(PerceptronCount));
+            folded = truncate(temp);
         end
 
         // Return the final index
@@ -143,7 +144,7 @@ endmodule
 
 (* synthesize *)
 module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
-    HashFunction hash <- mkHybridDrop;
+    HashFunction hash <- mkHybridMod;
     PerceptronHistorian ph <- mkPerceptronHistorianShift;
     RegFile#(PerceptronsRegIndex, PerceptronHistory) histories <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1));
     PerceptronGHistReg global_history <- mkGlobalBrHistReg;
