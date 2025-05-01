@@ -25,8 +25,6 @@ typedef 63 PerceptronEntries; // Numeric: Size of perceptron (length of history 
 typedef TLog#(TAdd#(PerceptronEntries, 1)) PerceptronIndexWidth; // Numeric: Number of bits to be used for indexing history and weights. 1 is to ensure index big enough to deal with biases.
 typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the index for history and weights.
 typedef TAdd#(TMul#(PerceptronEntries, 2), 14) Threshold;
-typedef TLog#(Threshold) ThresholdWidth; // Numeric: Number of bits to be used for indexing the training count.
-typedef UInt#(ThresholdWidth) TrainCount; // Value: Bits used as the index for training count.
 
 // TODO (RW): Allow size of global history to be different to that of each local history
 typedef PerceptronEntries PerceptronGHistEntries; // Numeric: Size of global history
@@ -45,6 +43,7 @@ typedef Bit#(PerceptronsRegIndexWidth) PerceptronsRegIndex; // Value: Bits used 
 typedef struct {
     PerceptronGHist gHist;
     PerceptronsRegIndex index;
+    Bool train;
 } PerceptronTrainInfo deriving(Bits, Eq, FShow);
 
 typedef Vector#(PerceptronEntries, Bool) PerceptronHistory;
@@ -152,7 +151,6 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     RegFile#(PerceptronsRegIndex, PerceptronGWeights) global_weights <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1)); 
     
     Reg#(Addr) pc_reg <- mkRegU;
-    Reg#(TrainCount) trainCount <- mkReg(0); // TODO (RW): Choose a proper type for this that can't be too small for PerceptronEntries
     // TODO (RW): Decide max weight size and prevent overflow. 8 suggested in paper.
     
     // EHR to record predict results in this cycle
@@ -183,7 +181,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     endfunction
 
     // Function to compute the perceptron output
-    function Bool computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
+    function Int#(16) computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
         let gHist = global_hist.history; // Bit#(...)
 
         Int#(16) sum = extend(weight[0]); // Bias
@@ -194,7 +192,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
             // TODO (RW): Don't need to misalign for ghist as not using a global bias
             sum = boundedPlus(sum, ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])));
         end
-        return sum >= 0;
+        return sum;
     endfunction
 
     PerceptronGHist curGHist = global_history.history; // global history: MSB is the latest branch
@@ -215,8 +213,11 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 // In pred, most recent is correct
                 PerceptronGHist globHist = global_history.history;                
 
-                Bool taken = computePerceptronOutput(weights.sub(index), histories.sub(index), global_weights.sub(index), global_history); // TODO (RW): Work out how to pass
+                let sum = computePerceptronOutput(weights.sub(index), histories.sub(index), global_weights.sub(index), global_history); // TODO (RW): Work out how to pass
                 // TODO (RW): Need to know how to flush global_history on mispred? Check other predictors that use global (GSelect).
+
+                Bool taken = (sum >= 0);
+                Bool forceTrain = (sum < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)));
 
                 // $display("BSV Perceptron Pred %d: Taken: %d", index, taken);
 
@@ -230,7 +231,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                     taken: taken,
                     train: PerceptronTrainInfo {
                         gHist: globHist,
-                        index: index
+                        index: index,
+                        train: forceTrain
                     }
                 };
             endactionvalue;
@@ -252,14 +254,16 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     
     method Action update(Bool taken, PerceptronTrainInfo train, Bool mispred) if (!resetHist); 
         let index = train.index; // already hashed
-        
+        let forceTrain = train.train;
+
         // update history if mispred
         if (mispred) begin
             PerceptronGHist newHist = truncate({pack(taken), train.gHist} >> 1);
             global_history.redirect(newHist);
         end 
     
-        // TODO (RW): Only train if below training threshold. Paper says threshold = 1.93 * branch history + 14. This could be a power optimisation. Test with and without, measure impact.
+        // Paper says threshold = 1.93 * branch history + 14. 
+        // TODO (RW): Measure with and without?
         
         
         let local_hist = histories.sub(index);
@@ -274,7 +278,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
         // Bool localCorrelationPos, globCorrelationPos;
         // Int#(8) localInc, globInc;
-        if (mispred || (trainCount < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)))) begin
+        if (mispred || forceTrain) begin
             for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin 
                 local_weights[i] = boundedPlus(local_weights[i], ((local_hist[i-1] == taken) ? 1 : -1));
                 
@@ -299,12 +303,9 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 //     g_weights[i] = ((train.gHist[i-1] != 0) == taken) ? 1 : -1;
                 // end
             end
-
         
             // Update weights!
             global_weights.upd(index, g_weights);
-            trainCount <= boundedPlus(trainCount, 1);
-
         end
         
         weights.upd(index, local_weights);
