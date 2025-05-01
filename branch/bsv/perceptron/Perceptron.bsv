@@ -218,7 +218,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 // TODO (RW): Need to know how to flush global_history on mispred? Check other predictors that use global (GSelect).
 
                 Bool taken = (sum >= 0);
-                Bool forceTrain = (sum < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)));
+                Bool forceTrain = (abs(sum) < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)));
 
                 // $display("BSV Perceptron Pred %d: Taken: %d", index, taken);
 
