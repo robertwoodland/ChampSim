@@ -29,6 +29,7 @@ typedef struct {
 typedef union tagged{
   BranchUpdateInfo UpdateReq;
   Address PredictReq;
+  Bit#(1) FlushReq;
 } Message deriving(Bits, Eq, FShow);
 
 (* synthesize *)
@@ -65,8 +66,11 @@ module mkTestbench(Empty);
       if (t == fromInteger(1)) begin 
         ret = PredictReq(unpack(m[65:2]));
       end
-      else  begin
+      else if (t == fromInteger(2)) begin
         ret = UpdateReq(convertUpdate(m));
+      end
+      else begin
+        ret = FlushReq(1); // Probs works?
       end
       return ret;
     endfunction
@@ -83,6 +87,14 @@ module mkTestbench(Empty);
       Bool x = False;
       case(m) matches
         tagged PredictReq .pr : x = True;
+      endcase
+      return x;
+    endfunction
+
+    function Bool isUpdate(Message m);
+      Bool x = False;
+      case(m) matches
+        tagged UpdateReq .ur : x = True;
       endcase
       return x;
     endfunction
@@ -122,12 +134,17 @@ module mkTestbench(Empty);
       predReqFIFO.enq(message.PredictReq);      
     endrule  
 
-    rule handleUpdate(!isPred(recieveFIFO.first()));
+    rule handleUpdate(isUpdate(recieveFIFO.first()));
       let message = recieveFIFO.first();
       recieveFIFO.deq();
       // $display("BSV TestFSM Update IP: %d, target: %d, taken: %d, Type %d:", message.UpdateReq.ip, message.UpdateReq.target, message.UpdateReq.taken, message.UpdateReq.branch_type);
       update(pendingUpdates.first(), (message.UpdateReq.taken == 1)); // TODO (RW): Check that FIFO is in the right order
       pendingUpdates.deq();
+    endrule
+
+    rule handleFlush(!isPred(recieveFIFO.first()) && !isUpdate(recieveFIFO.first()));
+      recieveFIFO.deq();
+      myPredictor.flush();
     endrule
 
     rule doPrediction;

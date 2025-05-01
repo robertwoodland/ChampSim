@@ -59,6 +59,12 @@ void branch_update_req(unsigned int* res, unsigned char* buff){
   res[4] = ((ret.target & 0xD000000000000000) >> 30) | (ret.branch_type << 10) | (ret.taken << 2);
 }
 
+void branch_flush_req(unsigned int* res, unsigned char* buff) {
+  int flush_val = buff[0] - '0';   // Extract 0 or 1 from char
+  // fprintf(stderr, "Flushing Perceptron!\n");
+  // Pack flush_val into bits [2]
+  res[0] = res[0] | (flush_val << 2);
+}
 
 // 2 bits
 void recieve(unsigned int* res){
@@ -75,6 +81,10 @@ void recieve(unsigned int* res){
       //printf("Recieving Update\n");
       res[0] = UPDATE_REQ;
       branch_update_req(res, &buff[1]);
+    }else if(buff[0] == FLUSH_REQ){
+      //printf("Recieving Flush\n");
+      res[0] = FLUSH_REQ;
+      branch_flush_req(res, &buff[1]);
     }else{
       fprintf(stderr, "Recieving invalid data");
     }

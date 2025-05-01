@@ -3,3 +3,4 @@
 #define MSG_LENGTH 19
 #define PREDICT_REQ 1
 #define UPDATE_REQ 2
+#define FLUSH_REQ 3

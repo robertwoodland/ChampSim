@@ -154,7 +154,7 @@ void O3_CPU::flush_branch_predictor()
     // To do it properly, you should loop and ask for the remaining bytes each time.
     // assert(MSG_LENGTH == 9); - fails! 
     if(write(req_pipe[1], std::data(buff), MSG_LENGTH) == -1){
-      perror("Requesting prediction");
+      perror("Requesting flush");
     }
 
     return;
