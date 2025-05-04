@@ -328,6 +328,55 @@ TEST(PerceptronTests, FlushTest)
   EXPECT_EQ(out, 1);
 }
 
+// Test flush
+TEST(PerceptronTests, NoFlushTest)
+{
+
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor for two branches
+  for (uint64_t count = 1; count < 200; count++) {
+    // predict 1
+    out = cpu.predict_branch(ip);
+    // update 1
+    cpu.last_branch_result(ip, 0, 1, 3);
+    // predict 2
+    out = cpu.predict_branch(ip + 10);
+    // update 2
+    cpu.last_branch_result(ip + 10, 8, 0, 3);
+  }
+
+  // Assert that they trained correctly
+  // predict 1
+  out = cpu.predict_branch(ip);
+  EXPECT_EQ(out, 1);
+
+  // predict 2
+  out = cpu.predict_branch(ip + 10);
+  EXPECT_EQ(out, 0);
+
+  // Don't flush predictor
+
+  // Check that the predictor is not reset
+  for (uint64_t i = 0; i < 10; i++) {
+    // Train a little to 0 and 1 (flipped from before)
+    out = cpu.predict_branch(ip);
+    cpu.last_branch_result(ip, 0, 0, 3);
+
+    out = cpu.predict_branch(ip + 10);
+    cpu.last_branch_result(ip + 10, 8, 1, 3);
+  }
+
+  // Pred and assert we have NOT unlearnt (unsuccessful flush)
+  out = cpu.predict_branch(ip);
+  EXPECT_EQ(out, 1);
+
+  out = cpu.predict_branch(ip + 10);
+  EXPECT_EQ(out, 0);
+}
 
 int main(int argc, char** argv)
 {
