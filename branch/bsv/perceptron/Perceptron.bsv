@@ -79,17 +79,17 @@ module mkPerceptronHistorianShift(PerceptronHistorian);
 endmodule
 
 
-interface HashFunction;
-    method PerceptronsRegIndex getIndex(Addr pc);
+interface HashFunction#(type perceptronsRegIndex);
+    method perceptronsRegIndex getIndex(Addr pc);
 endinterface
 
-module mkTruncate(HashFunction);
+module mkTruncate(HashFunction#(PerceptronsRegIndex));
     method PerceptronsRegIndex getIndex(Addr pc);
         return truncate(pc >> 1); // compressed instructions
     endmethod
 endmodule
 
-module mkHybridMod(HashFunction);
+module mkHybridMod(HashFunction#(PerceptronsRegIndex));
     method PerceptronsRegIndex getIndex(Addr pc);
         PerceptronsRegIndex folded = 0;
         UInt#(TAdd#(PerceptronsRegIndexWidth, 1)) count = fromInteger(valueOf(PerceptronCount));
@@ -115,7 +115,7 @@ module mkHybridMod(HashFunction);
     endmethod
 endmodule
 
-module mkHybridDrop(HashFunction);
+module mkHybridDrop(HashFunction#(PerceptronsRegIndex));
     method PerceptronsRegIndex getIndex(Addr pc);
         PerceptronsRegIndex folded = 0;
         UInt#(TAdd#(PerceptronsRegIndexWidth, 1)) count = fromInteger(valueOf(PerceptronCount));
@@ -144,7 +144,7 @@ endmodule
 
 (* synthesize *)
 module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
-    HashFunction hash <- mkHybridMod;
+    HashFunction#(PerceptronsRegIndex) hash <- mkHybridMod;
     PerceptronHistorian ph <- mkPerceptronHistorianShift;
     RegFile#(PerceptronsRegIndex, PerceptronHistory) histories <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1));
     PerceptronGHistReg global_history <- mkGlobalBrHistReg;
