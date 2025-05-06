@@ -33,7 +33,7 @@ export BhtEntries;
 export BhtIndex;
 
 // Local BHT Typedefs
-typedef 128 BhtEntries; // TODO (RW): Scale to match Perceptron in testing
+typedef 128 BhtEntries;
 typedef Bit#(TLog#(BhtEntries)) BhtIndex;
 
 typedef BhtIndex BhtTrainInfo;

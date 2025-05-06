@@ -26,7 +26,6 @@ typedef TLog#(TAdd#(PerceptronEntries, 1)) PerceptronIndexWidth; // Numeric: Num
 typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the index for history and weights.
 typedef TAdd#(TMul#(PerceptronEntries, 2), 14) Threshold;
 
-// TODO (RW): Allow size of global history to be different to that of each local history
 typedef PerceptronEntries PerceptronGHistEntries; // Numeric: Size of global history
 typedef Bit#(PerceptronGHistEntries) PerceptronGHist; // Value: Bits used as the global history.
 typedef GlobalBrHistReg#(PerceptronGHistEntries) PerceptronGHistReg; // Register: Global history register.
@@ -34,8 +33,7 @@ typedef GlobalBrHistReg#(PerceptronGHistEntries) PerceptronGHistReg; // Register
 typedef SizeOf#(Addr) AddrWidth; // Numeric: Number of bits in an address.
 typedef TExp#(AddrWidth) AddrRange; // Numeric: Number of addresses in the range.
 // typedef TDiv#(AddrRange, TExp#(40)) PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
-typedef 16 PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
-// TODO (RW): Make this same size as BHT. Look at papers to see what is a reasonable size.
+typedef 341 PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
 typedef TLog#(PerceptronCount) PerceptronsRegIndexWidth; // Numeric: Number of bits to be used for indexing the Regfile of perceptrons.
 typedef Bit#(PerceptronsRegIndexWidth) PerceptronsRegIndex; // Value: Bits used as the index for the Regfile.
  
@@ -54,6 +52,8 @@ interface PerceptronHistorian; // Not stateful
     method PerceptronHistory update(PerceptronHistory hist, Bool taken);
     method Bool get(PerceptronHistory hist, PerceptronIndex index); // TODO (RW): What happens if you call with a value bigger than PerceptronEntries?
     method PerceptronHistory initHist();
+    // TODO (RW): Rename to reset?
+    // TODO (RW): Don't init local & global hist? 101010 may be fairer with an initial history of 000000. Saves time too.
 endinterface
 
 module mkPerceptronHistorianShift(PerceptronHistorian);
@@ -61,6 +61,7 @@ module mkPerceptronHistorianShift(PerceptronHistorian);
 
     method PerceptronHistory update(PerceptronHistory hist, Bool taken);
         // shift all history values down one, add new value at the top.
+        // TODO (RW): Try using rotate method here?
         for (PerceptronIndex i = fromInteger(valueOf(PerceptronEntries)) - 1; i > 0; i = i - 1) begin
             hist[i] = hist[i - 1];
         end
@@ -73,6 +74,7 @@ module mkPerceptronHistorianShift(PerceptronHistorian);
     endmethod
 
     method PerceptronHistory initHist;
+        // TODO (RW): Should this instead be initialised to 10101010...? Prevents unfair initial training!
         PerceptronHistory hist = replicate(False);
         return hist;
     endmethod
@@ -180,15 +182,16 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     endfunction
 
     // Function to compute the perceptron output
-    function Int#(16) computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist); // TODO (RW): Can make actionvalue for debug prints. Set back after for performance.
+    function Int#(16) computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist);
         let gHist = global_hist.history; // Bit#(...)
 
+        // TODO (RW): Dynamically choose a type based on the size of the weights, and so the max value
         Int#(16) sum = extend(weight[0]); // Bias
-        for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin // TODO (RW): check loop boundary
+        for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin
             sum = boundedPlus(sum, (history[i-1] ? extend(weight[i]) : extend(-weight[i]))); // Think about hardware this implies. - log (128) = 9 deep?
         end
-        for (Integer i = 0; i < valueOf(PerceptronGHistEntries); i = i + 1) begin // TODO (RW): check loop boundary
-            // TODO (RW): Don't need to misalign for ghist as not using a global bias
+        for (Integer i = 0; i < valueOf(PerceptronGHistEntries); i = i + 1) begin
+            // TODO (RW): Should I be using a global bias?
             sum = boundedPlus(sum, ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])));
         end
         return sum;
@@ -212,8 +215,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
                 // In pred, most recent is correct
                 PerceptronGHist globHist = global_history.history;                
 
-                let sum = computePerceptronOutput(weights.sub(index), histories.sub(index), global_weights.sub(index), global_history); // TODO (RW): Work out how to pass
-                // TODO (RW): Need to know how to flush global_history on mispred? Check other predictors that use global (GSelect).
+                let sum = computePerceptronOutput(weights.sub(index), histories.sub(index), global_weights.sub(index), global_history);
 
                 Bool taken = (sum >= 0);
                 Bool forceTrain = (abs(sum) < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)));
@@ -256,6 +258,8 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         let forceTrain = train.train;
 
         // update history if mispred
+        // TODO (RW): Does this work for cases where two predictions have been made in the same cycle?
+        // TODO (RW): Does this also cause issues where update is called much later? This would be harder to fix...
         if (mispred) begin
             PerceptronGHist newHist = truncate({pack(taken), train.gHist} >> 1);
             global_history.redirect(newHist);
@@ -269,9 +273,10 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         PerceptronWeights local_weights = weights.sub(index);
         PerceptronGWeights g_weights = global_weights.sub(index);
         
-        // Increment bias if taken, else decrement
+        // Train bias
+        // TODO (RW): Should this be guarded behind the training threshold?
         local_weights[0] = boundedPlus(local_weights[0], ((taken) ? 1 : -1));
-        // TODO (RW): Why isn't this updating (sits at 0)
+        // TODO (RW): Why isn't this updating (sits at 0) (check!)
 
         // Train local and global weights
         
