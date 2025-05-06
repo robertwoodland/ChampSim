@@ -94,20 +94,19 @@ module mkHybridMod(HashFunction#(PerceptronsRegIndex));
         PerceptronsRegIndex folded = 0;
         UInt#(TAdd#(PerceptronsRegIndexWidth, 1)) count = fromInteger(valueOf(PerceptronCount));
 
+        // Break PC into chunks of size PerceptronsRegIndexWidth
+        for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
+            PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
+            folded = folded ^ chunk;       // XOR fold it in
+        end
+
+        PerceptronsRegIndex index;
         // If a power of two, just truncate to size
         if ((count & (count - 1)) == 0) begin
-            folded = truncate(pc >> 1);
+            index = folded;
         end else begin
-            // Break PC into chunks of size PerceptronsRegIndexWidth
-            for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
-                PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
-                folded = folded ^ chunk;       // XOR fold it in
-            end
-
             // Try doing the expensive thing... MOD(valueOf(PerceptronCount))
-            Bit#(TAdd#(PerceptronsRegIndexWidth, 1)) temp = zeroExtend(folded);
-            temp = temp % fromInteger(valueOf(PerceptronCount));
-            folded = truncate(temp);
+            folded = folded % fromInteger(valueOf(PerceptronCount));
         end
 
         // Return the final index
@@ -119,17 +118,16 @@ module mkHybridDrop(HashFunction#(PerceptronsRegIndex));
     method PerceptronsRegIndex getIndex(Addr pc);
         PerceptronsRegIndex folded = 0;
         UInt#(TAdd#(PerceptronsRegIndexWidth, 1)) count = fromInteger(valueOf(PerceptronCount));
+        
+        // Break PC into chunks of size PerceptronsRegIndexWidth
+        for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
+            PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
+            folded = folded ^ chunk;       // XOR fold it in
+        end
 
-        // If a power of two, just truncate to size
-        if ((count & (count - 1)) == 0) begin
-            folded = truncate(pc >> 1);
-        end else begin
-            // Break PC into chunks of size PerceptronsRegIndexWidth
-            for (Integer i = 0; i < valueOf(AddrWidth); i = i + valueOf(PerceptronsRegIndexWidth)) begin
-                PerceptronsRegIndex chunk = truncate(pc >> i); // get chunk of appropriate size
-                folded = folded ^ chunk;       // XOR fold it in
-            end
-
+        // If a power of two, just return
+        // Otherwise:
+        if ((count & (count - 1)) != 0) begin
             // If out of range, drop MSB
             if (folded > fromInteger(valueOf(PerceptronCount) - 1)) begin
                 folded = (truncate(folded << 1) >> 1);
