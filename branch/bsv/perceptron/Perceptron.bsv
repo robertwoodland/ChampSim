@@ -74,7 +74,6 @@ module mkPerceptronHistorianShift(PerceptronHistorian);
     endmethod
 
     method PerceptronHistory initHist;
-        // TODO (RW): Should this instead be initialised to 10101010...? Prevents unfair initial training!
         PerceptronHistory hist = replicate(False);
         return hist;
     endmethod
