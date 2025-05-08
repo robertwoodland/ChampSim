@@ -7,8 +7,8 @@ UPPER="Perceptron"
 PRED_FILE="branch/bsv/$PRED/$UPPER.bsv"
 FILE_NAME="../$UPPER.bsv"
 
-# 10^6 = 30s per trace
-BASE_COMMAND="./bin/champsim --warmup_instructions 1000000 --simulation_instructions 1000000"
+# 10^7 = 300s per trace
+BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 TRACE="454.calculix-104B.champsimtrace.xz"
 
 

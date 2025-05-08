@@ -7,8 +7,8 @@ UPPER="Perceptron"
 PRED_FILE="branch/bsv/$PRED/$UPPER.bsv"
 FILE_NAME="../$UPPER.bsv"
 
-# 10^6 = 30s per trace
-BASE_COMMAND="./bin/champsim --warmup_instructions 1000000 --simulation_instructions 1000000"
+# 10^7 = 300s per trace
+BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 TRACE="454.calculix-104B.champsimtrace.xz"
 
 
@@ -26,7 +26,7 @@ TRACE="454.calculix-104B.champsimtrace.xz"
 # # Double / halve each time
 
 LOCAL=(11 11 11 11 11 11 11 11 11 11 11)
-GLOBAL=(5 9 18 36 72 144 288)
+GLOBAL=(1 10 22 36 80 174 360)
 COUNT=(341 341 341 341 341 341 341 341 341 341 341 341)
 # Fix all but Global, starting at budget of 16KB = (11 36 341)
 # Double / halve each time
