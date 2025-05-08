@@ -7,20 +7,24 @@ UPPER="Perceptron"
 PRED_FILE="branch/bsv/$PRED/$UPPER.bsv"
 FILE_NAME="../$UPPER.bsv"
 
+# 10^6 = 30s per trace
+# 10^7 - 3 hours for 36 = 5 mins per trace
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 TRACE="454.calculix-104B.champsimtrace.xz"
 
 
-LOCAL=(2 2 2 5 5 10 10 11)
-GLOBAL=(8 10 23 25 31 34 34 36)
-COUNT=(11 19 19 33 55 91 182 341)
+# LOCAL=(2 2 2 5 5 10 10 11 12 13 15 16)
+# GLOBAL=(8 10 23 25 31 34 34 36 40 50 60 80)
+# COUNT=(11 19 19 33 64 91 182 341 680 1360 2720 5440)
 
 if [[ -f "$PRED_FILE" ]]; then
-    for i in {0..7}; do
+    for i in {0..11}; do
+        SIZE=$(python3 ./scripts/histories/size.py $PRED ${LOCAL[i]} ${GLOBAL[i]} ${COUNT[i]})
+
         # Change into build directory
         cd "$(dirname "$PRED_FILE")/Build" || exit 1
-        echo "LOCAL: ${LOCAL[i]}, GLOBAL: ${GLOBAL[i]}, COUNT: ${COUNT[i]}"
-        OUTPUT_FILE="${LOCAL[i]}_${GLOBAL[i]}_${COUNT[i]}.txt"
+        echo "Size: ${SIZE}B, LOCAL: ${LOCAL[i]}, GLOBAL: ${GLOBAL[i]}, COUNT: ${COUNT[i]}"
+        OUTPUT_FILE="${SIZE}_${LOCAL[i]}_${GLOBAL[i]}_${COUNT[i]}.txt"
         
         # Modify params
         sed -i "s/typedef\s\+\w\+\s\+PerceptronEntries;/typedef ${LOCAL[i]} PerceptronEntries;/" "$FILE_NAME"
