@@ -26,14 +26,14 @@ typedef TLog#(TAdd#(PerceptronEntries, 1)) PerceptronIndexWidth; // Numeric: Num
 typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the index for history and weights.
 typedef TAdd#(TMul#(PerceptronEntries, 2), 14) Threshold;
 
-typedef 19 PerceptronGHistEntries; // Numeric: Size of global history
+typedef 17 PerceptronGHistEntries; // Numeric: Size of global history
 typedef Bit#(PerceptronGHistEntries) PerceptronGHist; // Value: Bits used as the global history.
 typedef GlobalBrHistReg#(PerceptronGHistEntries) PerceptronGHistReg; // Register: Global history register.
 
 typedef SizeOf#(Addr) AddrWidth; // Numeric: Number of bits in an address.
 typedef TExp#(AddrWidth) AddrRange; // Numeric: Number of addresses in the range.
 // typedef TDiv#(AddrRange, TExp#(40)) PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
-typedef 1450 PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
+typedef 1250 PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
 typedef TLog#(PerceptronCount) PerceptronsRegIndexWidth; // Numeric: Number of bits to be used for indexing the Regfile of perceptrons.
 typedef Bit#(PerceptronsRegIndexWidth) PerceptronsRegIndex; // Value: Bits used as the index for the Regfile.
  
