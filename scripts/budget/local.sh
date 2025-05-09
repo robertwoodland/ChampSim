@@ -10,7 +10,7 @@ FILE_NAME="../$UPPER.bsv"
 # 10^7 = 300s per trace
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 TRACE="454.calculix-104B.champsimtrace.xz"
-
+TRACE="401.bzip2-277B.champsimtrace.xz"
 
 # Overall:
 # LOCAL=(2 2 2 5 5 10 10 11 12 13 15 16)

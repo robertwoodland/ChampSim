@@ -9,14 +9,14 @@ FILE_NAME="../$UPPER.bsv"
 
 # 10^7 = 300s per trace
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
-TRACE="454.calculix-104B.champsimtrace.xz"
+TRACE="401.bzip2-277B.champsimtrace.xz"
 
 
 LOCAL=(11 11 11 11 11 11 11 )
 GLOBAL=(36 36 36 36 36 36 36)
 COUNT=(341 341 341 341 341 341 341)
 # Fix all but width, starting at budget of 16KB = (11 36 341, 8)
-WEIGHTS=(5 6 7 8 9 10 11 12)
+WEIGHTS=(5 6 7 8 9 10 11)
 # Vary by factors of two
 
 if [[ -f "$PRED_FILE" ]]; then

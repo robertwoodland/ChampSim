@@ -13,9 +13,9 @@ BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instruc
 TRACE="454.calculix-104B.champsimtrace.xz"
 
 
-# LOCAL=(2 2 2 5 5 10 10 11 12 13 15 16)
-# GLOBAL=(8 10 23 25 31 34 34 36 40 50 60 80)
-# COUNT=(11 19 19 33 64 91 182 341 680 1360 2720 5440)
+LOCAL=(2 2 2 5 5 10 10 11 12 13 15 16)
+GLOBAL=(8 10 23 25 31 34 34 36 40 50 60 80)
+COUNT=(11 19 19 33 64 91 182 341 680 1360 2720 5440)
 
 if [[ -f "$PRED_FILE" ]]; then
     for i in {0..11}; do

@@ -7,18 +7,26 @@ UPPER="Bht"
 PRED_FILE="branch/bsv/$PRED/$UPPER.bsv"
 FILE_NAME="../$UPPER.bsv"
 
+# 10^7 - 3 hours
+# 10^8 - 1 day
+# 10^9 - several days
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 TRACE="454.calculix-104B.champsimtrace.xz"
 
 
-ENTRIES=(512 1024 2048 4096 8192 16384 32768 65536)
+# ENTRIES=(512 1024 2048 4096 8192 16384 32768 65536)
+ENTRIES=(512 1024 2048 4096 8192 16384 32768 65536 131072 262144 524288 1048576)
 
 if [[ -f "$PRED_FILE" ]]; then
-    for i in {0..7}; do
+    for i in {0..11}; do
+        SIZE=$(python3 ./scripts/histories/size.py $PRED ${ENTRIES[i]})
+
+
         # Change into build directory
         cd "$(dirname "$PRED_FILE")/Build" || exit 1
-        echo "ENTRIES: ${ENTRIES[i]}"
-        OUTPUT_FILE="${ENTRIES[i]}.txt"
+        echo "Size: ${SIZE}B, Entries: ${ENTRIES[i]}"
+        OUTPUT_FILE="${SIZE}_${ENTRIES[i]}.txt"
+
         
         # Modify params
         sed -i "s/typedef\s\+\w\+\s\+BhtEntries;/typedef ${ENTRIES[i]} BhtEntries;/" "$FILE_NAME"
