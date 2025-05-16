@@ -46,7 +46,7 @@ module mkBht(DirPredictor#(BhtTrainInfo));
     Reg#(Addr) pc_reg <- mkRegU;
 
     function BhtIndex getIndex(Addr pc);
-        return truncate(pc >> 2);
+        return truncate(pc >> 1);
     endfunction
 
     Vector#(SupSize, DirPred#(BhtTrainInfo)) predIfc;

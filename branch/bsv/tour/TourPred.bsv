@@ -88,7 +88,7 @@ module mkTourPred(DirPredictor#(TourTrainInfo));
     Ehr#(TAdd#(1, SupSize), Bit#(SupSize)) predRes <- mkEhr(0);
 
     function PCIndex getPCIndex(Addr pc);
-        return truncate(pc >> 2);
+        return truncate(pc >> 1);
     endfunction
 
     // common sat counter operations
