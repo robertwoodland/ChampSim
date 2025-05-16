@@ -106,8 +106,8 @@ endmodule
 
 module mkMod(HashFunction#(PerceptronsRegIndex));
     method PerceptronsRegIndex getIndex(Addr pc);
-        PerceptronsRegIndex modded = truncate(pc % fromInteger(valueOf(PerceptronCount)));
-        return modded;
+        Addr modded = (pc % fromInteger(valueOf(PerceptronCount)));
+        return truncate(modded);
     endmethod
 endmodule
 
