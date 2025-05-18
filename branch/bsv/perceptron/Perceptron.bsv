@@ -50,10 +50,8 @@ typedef Vector#(PerceptronGHistEntries, Int#(8)) PerceptronGWeights;
 
 interface PerceptronHistorian; // Not stateful
     method PerceptronHistory update(PerceptronHistory hist, Bool taken);
-    method Bool get(PerceptronHistory hist, PerceptronIndex index); // TODO (RW): What happens if you call with a value bigger than PerceptronEntries?
+    method Bool get(PerceptronHistory hist, PerceptronIndex index);
     method PerceptronHistory initHist();
-    // TODO (RW): Rename to reset?
-    // TODO (RW): Don't init local & global hist? 101010 may be fairer with an initial history of 000000. Saves time too.
 endinterface
 
 module mkPerceptronHistorianShift(PerceptronHistorian);
@@ -286,8 +284,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     RegFile#(PerceptronsRegIndex, PerceptronGWeights) global_weights <- mkRegFileWCF(0,fromInteger(valueOf(PerceptronCount)-1)); 
     
     Reg#(Addr) pc_reg <- mkRegU;
-    // TODO (RW): Decide max weight size and prevent overflow. 8 suggested in paper.
-    
+
     // EHR to record predict results in this cycle
     Ehr#(TAdd#(1, SupSize), Bit#(TLog#(TAdd#(SupSize, 1)))) predCnt <- mkEhr(0);
     Ehr#(TAdd#(1, SupSize), Bit#(SupSize)) predRes <- mkEhr(0);
@@ -300,11 +297,10 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     rule initHistory(resetHist);
         if (nextInit <= fromInteger(valueOf(PerceptronCount) - 1)) begin
             histories.upd(nextInit, ph.initHist());
-            weights.upd(nextInit, zeroWeights); // TODO (RW): Consider what happens at start when history is full of Falses.
+            weights.upd(nextInit, zeroWeights);
             global_weights.upd(nextInit, zeroGWeights);
         end
         if (nextInit == fromInteger(valueOf(PerceptronCount) - 1)) begin
-            // $display("BSV Perceptron Init: Initialised all perceptrons & hists");
             resetHist <= False;
         end
 
@@ -319,13 +315,11 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
     function Int#(16) computePerceptronOutput(PerceptronWeights weight, PerceptronHistory history, PerceptronGWeights glob_weight, PerceptronGHistReg global_hist);
         let gHist = global_hist.history; // Bit#(...)
 
-        // TODO (RW): Dynamically choose a type based on the size of the weights, and so the max value
         Int#(16) sum = extend(weight[0]); // Bias
         for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin
             sum = boundedPlus(sum, (history[i-1] ? extend(weight[i]) : extend(-weight[i]))); // Think about hardware this implies. - log (128) = 9 deep?
         end
         for (Integer i = 0; i < valueOf(PerceptronGHistEntries); i = i + 1) begin
-            // TODO (RW): Should I be using a global bias?
             sum = boundedPlus(sum, ((gHist[i] == 1) ? extend(glob_weight[i]) : extend(-glob_weight[i])));
         end
         return sum;
@@ -353,8 +347,6 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
 
                 Bool taken = (sum >= 0);
                 Bool forceTrain = (abs(sum) < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)));
-
-                // $display("BSV Perceptron Pred %d: Taken: %d", index, taken);
 
                 // record pred result (for global history)
                 predCnt[i] <= predCnt[i] + 1;
@@ -392,25 +384,17 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         let forceTrain = train.train;
 
         // update history if mispred
-        // TODO (RW): Does this work for cases where two predictions have been made in the same cycle?
-        // TODO (RW): Does this also cause issues where update is called much later? This would be harder to fix...
         if (mispred) begin
             PerceptronGHist newHist = truncate({pack(taken), train.gHist} >> 1);
             global_history.redirect(newHist);
         end 
     
-        // Paper says threshold = 1.93 * branch history + 14. 
-        // TODO (RW): Measure with and without?
-        
-        
         let local_hist = histories.sub(index);
         PerceptronWeights local_weights = weights.sub(index);
         PerceptronGWeights g_weights = global_weights.sub(index);
         
         // Train bias
-        // TODO (RW): Should this be guarded behind the training threshold?
         local_weights[0] = boundedPlus(local_weights[0], ((taken) ? 1 : -1));
-        // TODO (RW): Why isn't this updating (sits at 0) (check!)
 
         // Train local and global weights
         
@@ -419,27 +403,10 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         if (mispred || forceTrain) begin
             for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin 
                 local_weights[i] = boundedPlus(local_weights[i], ((local_hist[i-1] == taken) ? 1 : -1));
-                
-                // // Penalise incorrect weights by subtracting 10 instead of 1.
-                // if (local_weights[i] != 0) begin
-                //     localCorrelationPos = ((local_hist[i-1] ? 1 : -1) * local_weights[i]) > 0;
-                //     localInc = (local_weights[i] > 0) ? 1 : -1;
-                //     local_weights[i] = boundedPlus(local_weights[i], localInc * ((localCorrelationPos == taken) ? 1 : -10));
-                // end else begin
-                //     local_weights[i] = (local_hist[i-1] == taken) ? 1 : -1;
-                // end
-                
             end
             
             for (Integer i = 0; i < valueOf(PerceptronGHistEntries); i = i + 1) begin
                 g_weights[i] = boundedPlus(g_weights[i], (((train.gHist[i] != 0) == taken) ? 1 : -1)); 
-                // if (g_weights[i] != 0) begin
-                //     globCorrelationPos = (((train.gHist[i-1] != 0) ? 1 : -1) * g_weights[i]) > 0;
-                //     globInc = (g_weights[i] > 0) ? 1 : -1;
-                //     g_weights[i] = boundedPlus(g_weights[i], globInc * ((globCorrelationPos == taken) ? 1 : -10));
-                // end else begin
-                //     g_weights[i] = ((train.gHist[i-1] != 0) == taken) ? 1 : -1;
-                // end
             end
         
             // Update weights!
@@ -450,9 +417,6 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         
         // Update local history
         local_hist = ph.update(local_hist, taken);
-        // $display("BSV Global Weights Post Update %d: %b", index, g_weights);
-        // $display("BSV Perceptron Update: Local Hist %d Post Update: %b", index, local_hist);
-        // $display("BSV Perceptron Update: Local Weights %d: %b", index, local_weights);
 
         histories.upd(index, local_hist);
     endmethod
