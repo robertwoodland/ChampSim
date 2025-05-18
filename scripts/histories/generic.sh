@@ -31,5 +31,6 @@ OUTPUT_FILE="${LOCAL_HIST}_${GLOBAL_HIST}_${PERCEPTRON_COUNT}.txt"
 
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 TRACE="454.calculix-104B.champsimtrace.xz"
+TRACEDIR="traces/"
 echo "Running: $BASE_COMMAND $TRACE > results/histories/$OUTPUT_FILE"
-$BASE_COMMAND $TRACE > "results/histories/$OUTPUT_FILE"
+$BASE_COMMAND ${TRACEDIR}${TRACE} > "results/histories/$OUTPUT_FILE"

@@ -33,9 +33,9 @@ if [[ -f "$PRED_FILE" ]]; then
             
             # Modify param
             # Bool forceTrain = (abs(sum) < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)));
-            # sed -i "s/Bool\s\+forceTrain\s\+=\s\+(abs(sum)\s\+<\s\+fromInteger(trunc((\w\.\w\+/\ /" "$FILE_NAME"
-            sed -i "s/fromInteger(valueOf(PerceptronEntries))+\s\+\w\+\s\+\w\/\Bool forceTrain = (abs(sum) < fromInteger(trunc((${THRESHOLDS[i]}/" "$FILE_NAME"
-
+            # Bool forceTrain = (abs(sum) < fromInteger(trunc((1.93 * (fromInteger(valueOf(PerceptronEntries)))) + 14)));
+            sed -i "s/fromInteger(trunc((\w\+\.[0-9]\{2,\} \*/fromInteger(trunc((${THRESHOLDS[i]} */" "$FILE_NAME"
+            sed -i "s/fromInteger(trunc(([^ ]* \*/fromInteger(trunc((${THRESHOLDS[i]} */" "$FILE_NAME"
             echo "Making $PRED"
             make all_bsim
 

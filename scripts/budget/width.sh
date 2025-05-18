@@ -10,6 +10,7 @@ FILE_NAME="../$UPPER.bsv"
 # 10^7 = 300s per trace
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 # TRACE="401.bzip2-277B.champsimtrace.xz"
+TRACEDIR="traces/"
 TRACE="403.gcc-17B.champsimtrace.xz"
 
 
@@ -61,7 +62,7 @@ if [[ -f "$PRED_FILE" ]]; then
         make
 
         echo "Running: $BASE_COMMAND $TRACE > results/budget/width/$OUTPUT_FILE"
-        $BASE_COMMAND $TRACE > "results/budget/width/$OUTPUT_FILE"
+        $BASE_COMMAND ${TRACEDIR}${TRACE} > "results/budget/width/$OUTPUT_FILE"
     done
 else
     echo "Error: $PRED_FILE not found."

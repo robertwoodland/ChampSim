@@ -2,21 +2,19 @@
 
 # Read the hash.bsv file and extract the required values
 
-HASH=("Truncate" "Mix" "Mod" "Hybrid" "MSB", "HybridDrop")
+# HASH=("Truncate" "Mix" "Mod" "Hybrid" "MSB", "HybridDrop", "HybridMod", "HybridMod2")
+HASH=("HybridMod2" "HybridMod3")
 FILE_NAME="./test/bsv/hash.bsv"
 BUILD_COMMAND="bsc -u -sim -elab -keep-fires -aggressive-conditions -no-warn-action-shadowing"
 LINK_COMMAND="bsc -e mkHashTestBench -sim -o hash_bsim"
 BASE_COMMAND="./test/bsv/hash_bsim -V"
 FUNCTION_CALL="getIndex"
 
-LOCAL=(2 2 2 5 5 10 10 11)
-GLOBAL=(8 10 23 25 31 34 34 36)
-
-FUN="Truncate"
 
 # 2^18. Set according to timings!
 MAX=262144
-COUNTS=(11 16 19 33 55 91 182 341)
+# COUNTS=(11 16 19 33 55 91 182 341)
+COUNTS=(55)
 
 
 if [[ -f "$FILE_NAME" ]]; then

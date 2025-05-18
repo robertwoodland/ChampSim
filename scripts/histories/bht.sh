@@ -11,7 +11,8 @@ FILE_NAME="../$UPPER.bsv"
 # 10^8 - 1 day
 # 10^9 - several days
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
-TRACE="454.calculix-104B.champsimtrace.xz"
+TRACEDIR="traces/"
+TRACE="401.bzip2-277B.champsimtrace.xz"
 
 
 # ENTRIES=(512 1024 2048 4096 8192 16384 32768 65536)
@@ -44,8 +45,8 @@ if [[ -f "$PRED_FILE" ]]; then
         echo "Making champsim"
         make
 
-        echo "Running: $BASE_COMMAND $TRACE > results/histories/$PRED/$OUTPUT_FILE"
-        $BASE_COMMAND $TRACE > "results/histories/$PRED/$OUTPUT_FILE"
+        echo "Running: $BASE_COMMAND $TRACE > results/histories/${PRED}NewHash/$OUTPUT_FILE"
+        $BASE_COMMAND ${TRACEDIR}${TRACE} > "results/histories/${PRED}NewHash/$OUTPUT_FILE"
     done
 else
     echo "Error: $PRED_FILE not found."

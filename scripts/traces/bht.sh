@@ -8,7 +8,8 @@ PRED_FILE="branch/bsv/$PRED/$UPPER.bsv"
 FILE_NAME="../$UPPER.bsv"
 
 # 10^6 = 30s per trace
-BASE_COMMAND="./bin/champsim --warmup_instructions 1000000 --simulation_instructions 1000000"
+BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
+TRACEDIR="traces/"
 TRACES=("454.calculix-104B.champsimtrace.xz" "400.perlbench-50B.champsimtrace.xz" "401.bzip2-277B.champsimtrace.xz" "403.gcc-17B.champsimtrace.xz" "429.mcf-217B.champsimtrace.xz")
 NUMS=(454 400 401 403 429)
 
@@ -51,7 +52,7 @@ if [[ -f "$PRED_FILE" ]]; then
             make
 
             echo "Running: $BASE_COMMAND $TRACE > results/traces/$PRED/$NUM/$OUTPUT_FILE"
-            $BASE_COMMAND $TRACE > "results/traces/$PRED/$NUM/$OUTPUT_FILE"
+            $BASE_COMMAND ${TRACEDIR}${TRACE} > "results/traces/$PRED/$NUM/$OUTPUT_FILE"
         done
     done
 else

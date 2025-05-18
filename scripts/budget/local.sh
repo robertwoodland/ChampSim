@@ -11,6 +11,7 @@ FILE_NAME="../$UPPER.bsv"
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 # TRACE="454.calculix-104B.champsimtrace.xz"
 # TRACE="401.bzip2-277B.champsimtrace.xz"
+TRACEDIR="traces/"
 TRACE="403.gcc-17B.champsimtrace.xz"
 
 # Budget tests:
@@ -48,7 +49,7 @@ if [[ -f "$PRED_FILE" ]]; then
         make
 
         echo "Running: $BASE_COMMAND $TRACE > results/budget/local/$OUTPUT_FILE"
-        $BASE_COMMAND $TRACE > "results/budget/local/$OUTPUT_FILE"
+        $BASE_COMMAND ${TRACEDIR}${TRACE} > "results/budget/local/$OUTPUT_FILE"
     done
 else
     echo "Error: $PRED_FILE not found."

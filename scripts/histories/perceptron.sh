@@ -10,12 +10,14 @@ FILE_NAME="../$UPPER.bsv"
 # 10^6 = 30s per trace
 # 10^7 - 3 hours for 36 = 5 mins per trace
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
-TRACE="454.calculix-104B.champsimtrace.xz"
+TRACEDIR="traces/"
+TRACE="401.bzip2-277B.champsimtrace.xz"
 
 
-LOCAL=(2 2 2 5 5 10 10 11 12 13 15 16)
-GLOBAL=(8 10 23 25 31 34 34 36 40 50 60 80)
-COUNT=(11 19 19 33 64 91 182 341 680 1360 2720 5440)
+# New test rig gcc:
+LOCAL=(2 2 2 5 5 10 10 11 12 14 15 18)
+GLOBAL=(8 10 23 25 31 34 34 36 51 71 115 155)
+COUNT=(11 19 19 33 55 91 182 341 500 750 1000 1500)
 
 if [[ -f "$PRED_FILE" ]]; then
     for i in {0..11}; do
@@ -45,7 +47,7 @@ if [[ -f "$PRED_FILE" ]]; then
         make
 
         echo "Running: $BASE_COMMAND $TRACE > results/histories/$PRED/$OUTPUT_FILE"
-        $BASE_COMMAND $TRACE > "results/histories/$PRED/$OUTPUT_FILE"
+        $BASE_COMMAND ${TRACEDIR}${TRACE} > "results/histories/$PRED/$OUTPUT_FILE"
     done
 else
     echo "Error: $PRED_FILE not found."
