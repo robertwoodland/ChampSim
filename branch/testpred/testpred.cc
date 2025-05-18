@@ -16,7 +16,7 @@
 #include "tracereader.h"
 #include "types.h"
 
-#define SCRIPT_LOCATION "/home/robert/cam/part2/project/ChampSim-1/branch/testpred/script.sh"
+#define SCRIPT_LOCATION "/home/redacted/cam/part2/project/ChampSim-1/branch/testpred/script.sh"
 
 #ifndef DEBUG
 #define DEBUG 0

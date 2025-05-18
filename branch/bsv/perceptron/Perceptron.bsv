@@ -55,11 +55,11 @@ interface PerceptronHistorian; // Not stateful
 endinterface
 
 module mkPerceptronHistorianShift(PerceptronHistorian);
-    // TODO (RW): Could define another implementation which uses a head pointer and overwrites oldest value on update.
+    // TODO: Could define another implementation which uses a head pointer and overwrites oldest value on update.
 
     method PerceptronHistory update(PerceptronHistory hist, Bool taken);
         // shift all history values down one, add new value at the top.
-        // TODO (RW): Try using rotate method here?
+        // TODO: Try using rotate method here?
         for (PerceptronIndex i = fromInteger(valueOf(PerceptronEntries)) - 1; i > 0; i = i - 1) begin
             hist[i] = hist[i - 1];
         end
