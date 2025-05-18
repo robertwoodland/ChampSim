@@ -40,11 +40,9 @@ module mkTestbench(Empty);
     function ActionValue#(Bit#(8)) predict(Address ip) = actionvalue
       Bit#(1) supScalarIndex = 0;
       DirPredResult#(PerceptronTrainInfo) pred <- myPredictor.pred[supScalarIndex].pred();
-      // print taken!
-      // $display("BSV TestFSM Predict IP: %d, taken: %d", ip, pred.taken); // Wrong!
       pendingUpdates.enq(tuple2(pred.train, pred.taken));
       return zeroExtend(pack(pred.taken));
-    endactionvalue; // TODO (RW): Could have this write straight to register
+    endactionvalue;
 
     function Action update(Tuple2#(PerceptronTrainInfo, Bool) b, Bool truthTaken) = action
       PerceptronTrainInfo trainInfo = tpl_1(b);
@@ -70,7 +68,7 @@ module mkTestbench(Empty);
         ret = UpdateReq(convertUpdate(m));
       end
       else begin
-        ret = FlushReq(1); // Probs works?
+        ret = FlushReq(1);
       end
       return ret;
     endfunction
@@ -109,10 +107,6 @@ module mkTestbench(Empty);
     Reg#(Bool) init <- mkReg(True);
 
     
-    // rule showCycles;
-    //   $display("Cycle. FIFO: %b", predReqFIFO.notEmpty);
-    // endrule
-
     rule initFsm(init);
       set_file_descriptors;
       let a <- $test$plusargs("DEBUG"); 
@@ -129,7 +123,6 @@ module mkTestbench(Empty);
     rule handlePred(isPred(recieveFIFO.first()));
       let message = recieveFIFO.first();
       recieveFIFO.deq();
-      // $display("BSV TestFSM Predict IP: %d", message.PredictReq);
       myPredictor.nextPc(pack(message.PredictReq));
       predReqFIFO.enq(message.PredictReq);      
     endrule  
@@ -137,8 +130,7 @@ module mkTestbench(Empty);
     rule handleUpdate(isUpdate(recieveFIFO.first()));
       let message = recieveFIFO.first();
       recieveFIFO.deq();
-      // $display("BSV TestFSM Update IP: %d, target: %d, taken: %d, Type %d:", message.UpdateReq.ip, message.UpdateReq.target, message.UpdateReq.taken, message.UpdateReq.branch_type);
-      update(pendingUpdates.first(), (message.UpdateReq.taken == 1)); // TODO (RW): Check that FIFO is in the right order
+      update(pendingUpdates.first(), (message.UpdateReq.taken == 1));
       pendingUpdates.deq();
     endrule
 
@@ -148,7 +140,6 @@ module mkTestbench(Empty);
     endrule
 
     rule doPrediction;
-      // $display("BSV TestFSM Prediction Rule");
       let predReq = predReqFIFO.first();
       predReqFIFO.deq();
       let pred <- predict(predReq); 
@@ -156,5 +147,4 @@ module mkTestbench(Empty);
       branch_pred_resp(pred, predReq);
     endrule
 
-  // mkAutoFSM(stmt);
 endmodule

@@ -223,8 +223,170 @@ TEST(PerceptronTests, PredLocalTest)
   EXPECT_EQ(out, 0);
 }
 
-// Check repeated patterns are predicted well (black box)
-TEST(PerceptronTests, PredPatternTest)
+// Check repeated patterns are predicted well (black box) - n=2
+TEST(PerceptronTests, PredPatternTest2)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 300; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 3rd time
+    if (count % 2 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 1000; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 2 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=3
+TEST(PerceptronTests, PredPatternTest3)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 300; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 3rd time
+    if (count % 3 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 1000; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 3 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=4
+TEST(PerceptronTests, PredPatternTest4)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 300; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 4 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 1000; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 4 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=5
+TEST(PerceptronTests, PredPatternTest5)
 {
   uint8_t out;
   uint64_t ip = 1;
@@ -259,6 +421,330 @@ TEST(PerceptronTests, PredPatternTest)
     out = cpu.predict_branch(ip);
 
     if (count % 5 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=6
+TEST(PerceptronTests, PredPatternTest6)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 600; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 6 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 1000; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 6 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=7
+TEST(PerceptronTests, PredPatternTest7)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 602; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 7 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 1000; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 7 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=15
+TEST(PerceptronTests, PredPatternTest15)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 1200; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 15 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 1200; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 15 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=30
+TEST(PerceptronTests, PredPatternTest30)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 2400; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 30 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 2400; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 30 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=60
+TEST(PerceptronTests, PredPatternTest60)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 4800; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 60 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 4800; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 60 == 0) {
+      EXPECT_EQ(out, 1);
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      EXPECT_EQ(out, 0);
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+  printf("Total mispredictions: %ld\n", mispreds);
+}
+
+// Check repeated patterns are predicted well (black box) - n=120
+TEST(PerceptronTests, PredPatternTest120)
+{
+  uint8_t out;
+  uint64_t ip = 1;
+  O3_CPU cpu;
+  uint64_t mispreds = 0;
+  cpu.initialize_branch_predictor();
+
+  // Warm up the predictor
+  for (uint64_t count = 1; count <= 9600; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    // Taken every 5th time
+    if (count % 120 == 0) {
+      // update
+      cpu.last_branch_result(ip, 0, 1, 3);
+      if (out == 0) {
+        mispreds++;
+      }
+    } else {
+      // update
+      cpu.last_branch_result(ip, 0, 0, 3);
+      if (out == 1) {
+        mispreds++;
+      }
+    }
+  }
+
+  // Check that we always predict correctly
+  for (uint64_t count = 1; count < 9600; count++) {
+    // predict
+    out = cpu.predict_branch(ip);
+
+    if (count % 120 == 0) {
       EXPECT_EQ(out, 1);
       // update
       cpu.last_branch_result(ip, 0, 1, 3);
@@ -383,13 +869,3 @@ int main(int argc, char** argv)
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
-// TODO (RW): Check if consecutive addresses alias
-
-// TODO (RW): Write something to make sure bluectl exits!
-
-// TODO (RW): Make some black box (works on any predictor) and white box (perceptron specific) tests
-
-// Tests for bias?
-// Tests against random workflow
-// Etc

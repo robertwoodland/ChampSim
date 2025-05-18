@@ -12,40 +12,18 @@ typedef 64 AddrSz;
 typedef Bit#(AddrSz) Addr;
 
 
-// Local Perceptron Typedefs
-// typedef 63 PerceptronEntries; // Numeric: Size of perceptron (length of history and weights) - typically 4 to 66 depending on hardware budget.
-// typedef TLog#(TAdd#(PerceptronEntries, 1)) PerceptronIndexWidth; // Numeric: Number of bits to be used for indexing history and weights. 1 is to ensure index big enough to deal with biases.
-// typedef Bit#(PerceptronIndexWidth) PerceptronIndex; // Value: Bits used as the index for history and weights.
-
-// // TODO (RW): Allow size of global history to be different to that of each local history
-// typedef PerceptronEntries PerceptronGHistEntries; // Numeric: Size of global history
-// typedef Bit#(PerceptronGHistEntries) PerceptronGHist; // Value: Bits used as the global history.
-// typedef GlobalBrHistReg#(PerceptronGHistEntries) PerceptronGHistReg; // Register: Global history register.
-
 typedef SizeOf#(Addr) AddrWidth; // Numeric: Number of bits in an address.
-// typedef TExp#(AddrWidth) AddrRange; // Numeric: Number of addresses in the range.
-// typedef TDiv#(AddrRange, TExp#(40)) PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
 typedef 19 PerceptronCount; // Numeric: Number of perceptrons - depends on hash function. Made smaller as would take ages to initialise...
-// // TODO (RW): Make this same size as BHT. Look at papers to see what is a reasonable size.
 typedef TLog#(PerceptronCount) PerceptronsRegIndexWidth; // Numeric: Number of bits to be used for indexing the Regfile of perceptrons.
 typedef Bit#(PerceptronsRegIndexWidth) PerceptronsRegIndex; // Value: Bits used as the index for the Regfile.
  
-// // bookkeeping info a branch should keep for future training
-// typedef struct {
-//     PerceptronGHist gHist;
-//     PerceptronsRegIndex index;
-// } PerceptronTrainInfo deriving(Bits, Eq, FShow);
-
-// typedef Vector#(PerceptronEntries, Bool) PerceptronHistory;
-// typedef Vector#(TAdd#(PerceptronEntries, 1), Int#(8)) PerceptronWeights;
-// typedef Vector#(PerceptronGHistEntries, Int#(8)) PerceptronGWeights;
 
 (* synthesize *)
 module mkHashTestBench();
     Reg#(Addr) pc_reg <- mkReg(0);
 
     // Truncate
-    function PerceptronsRegIndex getIndexTruncate(Addr pc); // TODO (RW): Try better hash functions?
+    function PerceptronsRegIndex getIndexTruncate(Addr pc);
         return truncate(pc >> 1); // compressed instructions
     endfunction
 

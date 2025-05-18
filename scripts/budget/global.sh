@@ -49,7 +49,7 @@ if [[ -f "$PRED_FILE" ]]; then
         make
 
         echo "Running: $BASE_COMMAND $TRACE > results/budget/global/$OUTPUT_FILE"
-        $BASE_COMMAND $TRACE > "results/budget/global/$OUTPUT_FILE"
+        $BASE_COMMAND ${TRACEDIR}${TRACE} > "results/budget/global/$OUTPUT_FILE"
     done
 else
     echo "Error: $PRED_FILE not found."

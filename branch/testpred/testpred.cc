@@ -65,22 +65,10 @@ void O3_CPU::initialize_branch_predictor() {
 
   printf("Entering BSV from init\n");
   fflush(stdout);
-  // std::function<void(uint64_t)> send = [fd = ::req_pipe[1]](uint64_t branch_ip){
-  //   std::array<char, MSG_LENGTH> buff;
-  //   debug_printf("Prediction Request %ld\n", branch_ip);
-  //   buff[0] = PREDICT_REQ;
-  //   memcpy(std::data(buff)+1, &branch_ip, sizeof(branch_ip));
-    
-  //   if(write(fd, std::data(buff), MSG_LENGTH) == -1){
-  //     perror("Requesting prediction");
-  //   }
-  //   total_prefetched++;
-  // };
   std::function<void(uint64_t)> send = [fd = ::req_pipe[1]](uint64_t branch_ip){
     unsigned char doNothing = 0;
   };
   
-  // TODO (RW): Guard in ifdef of test mode
   #ifndef TEST_MODE
   champsim::enable_ahead_predictions(::req_pipe[1], send, &total_prefetched);
   #endif
@@ -93,15 +81,10 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
   uint8_t out = 0;
   uint64_t recieved_ip;
 
-  // debug_printf("Predict %ld\n", ip);
-
-
   std::array<char, MSG_LENGTH> sendBuff;
   sendBuff[0] = PREDICT_REQ;
   memcpy(std::data(sendBuff)+1, &ip, sizeof(ip));
   
-  // TODO (RW): Assert that length of write is equal to MSG_LENGTH. 
-  // To do it properly, you should loop and ask for the remaining bytes each time.
   if(write(req_pipe[1], std::data(sendBuff), MSG_LENGTH) == -1){
     perror("Requesting prediction");
   }   
@@ -110,7 +93,6 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
     memcpy(&recieved_ip, &buff[1], 8);
     if(recieved_ip == ip){
       out = buff[0] - '0';
-      // printf("Prediction %ld, out: %d\n", ip, out); // - deffo getting 0 sometimes when it shouldn't!
       count++; last_recieved = ip;
     }
   return out;
@@ -142,19 +124,7 @@ void O3_CPU::flush_branch_predictor()
     unsigned char buff[MSG_LENGTH];
     buff[0] = FLUSH_REQ;
 
-    // // Update way:
-    // contiguous_buff<uint64_t>(ip, buff, MSG_LENGTH, 1);
-    // contiguous_buff<uint64_t>(branch_target, buff, MSG_LENGTH, 9);
-    // buff[17] = taken + '0';
-    // buff[18] = branch_type + '0';
-    // if (write(req_pipe[1], buff, MSG_LENGTH) == -1) {
-    //   perror("Requesting update");
-    // }
-
     // Pred way:
-    // TODO (RW): Assert that length of write is equal to MSG_LENGTH. 
-    // To do it properly, you should loop and ask for the remaining bytes each time.
-    // assert(MSG_LENGTH == 9); - fails! 
     if(write(req_pipe[1], std::data(buff), MSG_LENGTH) == -1){
       perror("Requesting flush");
     }

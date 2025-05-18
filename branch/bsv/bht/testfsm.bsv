@@ -41,7 +41,7 @@ module mkTestbench(Empty);
       DirPredResult#(BhtTrainInfo) pred <- myPredictor.pred[supScalarIndex].pred();
       pendingUpdates.enq(tuple2(pred.train, pred.taken));
       return zeroExtend(pack(pred.taken));
-    endactionvalue; // TODO (RW): Could have this write straight to register
+    endactionvalue;
 
     function Action update(Tuple2#(BhtTrainInfo, Bool) b, Bool truthTaken) = action
       BhtTrainInfo trainInfo = tpl_1(b);

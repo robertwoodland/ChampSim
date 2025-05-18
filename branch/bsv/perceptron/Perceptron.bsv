@@ -402,7 +402,7 @@ module mkPerceptron(DirPredictor#(PerceptronTrainInfo));
         // Int#(8) localInc, globInc;
         if (mispred || forceTrain) begin
             for (Integer i = 1; i <= valueOf(PerceptronEntries); i = i + 1) begin 
-                local_weights[i] = boundedPlus(local_weights[i], ((local_hist[i-1] == taken) ? 1 : -1));
+                local_weights[i] = boundedPlus(local_weights[i], ((local_hist[i-1] == taken) ? 1 : -1));                
             end
             
             for (Integer i = 0; i < valueOf(PerceptronGHistEntries); i = i + 1) begin
