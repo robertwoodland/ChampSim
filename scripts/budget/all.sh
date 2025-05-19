@@ -5,7 +5,7 @@ SCRIPT="branch/testpred/script.sh"
 
 if [[ -f "$TESTPRED_FILE" ]]; then
     # Set script to point to perceptron
-    sed -i "s|Bluesim::sim\s\+load\s\+/home/robert/cam/part2/project/ChampSim/branch/bsv/[^ ]*|Bluesim::sim load /home/robert/cam/part2/project/ChampSim/branch/bsv/perceptron/Build/mkTestbench_bsim.so|" "$SCRIPT"
+    sed -i "s|Bluesim::sim\s\+load\s\+/home/redacted/cam/part2/project/ChampSim/branch/bsv/[^ ]*|Bluesim::sim load /home/redacted/cam/part2/project/ChampSim/branch/bsv/perceptron/Build/mkTestbench_bsim.so|" "$SCRIPT"
 
     ./scripts/budget/local.sh
     ./scripts/budget/global.sh
