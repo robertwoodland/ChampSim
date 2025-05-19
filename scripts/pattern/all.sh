@@ -15,15 +15,15 @@ if [[ -f "$TESTPRED_FILE" ]]; then
     
 
     # # Set script to point to predictor
-    sed -i "s|Bluesim::sim\s\+load\s\+/home/robert/cam/part2/project/ChampSim-1/branch/bsv/[^ ]*|Bluesim::sim load /home/robert/cam/part2/project/ChampSim-1/branch/bsv/perceptron/Build/mkTestbench_bsim.so|" "$SCRIPT"
+    sed -i "s|Bluesim::sim\s\+load\s\+/home/robert/cam/part2/project/ChampSim/branch/bsv/[^ ]*|Bluesim::sim load /home/robert/cam/part2/project/ChampSim/branch/bsv/perceptron/Build/mkTestbench_bsim.so|" "$SCRIPT"
     ./scripts/pattern/perceptron.sh
     
     # # BHT
-    sed -i "s|Bluesim::sim\s\+load\s\+/home/robert/cam/part2/project/ChampSim-1/branch/bsv/[^ ]*|Bluesim::sim load /home/robert/cam/part2/project/ChampSim-1/branch/bsv/bht/Build/mkTestbench_bsim.so|" "$SCRIPT"
+    sed -i "s|Bluesim::sim\s\+load\s\+/home/robert/cam/part2/project/ChampSim/branch/bsv/[^ ]*|Bluesim::sim load /home/robert/cam/part2/project/ChampSim/branch/bsv/bht/Build/mkTestbench_bsim.so|" "$SCRIPT"
     ./scripts/pattern/bht.sh
     
     # # Tour
-    sed -i "s|Bluesim::sim\s\+load\s\+/home/robert/cam/part2/project/ChampSim-1/branch/bsv/[^ ]*|Bluesim::sim load /home/robert/cam/part2/project/ChampSim-1/branch/bsv/tour/Build/mkTestbench_bsim.so|" "$SCRIPT"
+    sed -i "s|Bluesim::sim\s\+load\s\+/home/robert/cam/part2/project/ChampSim/branch/bsv/[^ ]*|Bluesim::sim load /home/robert/cam/part2/project/ChampSim/branch/bsv/tour/Build/mkTestbench_bsim.so|" "$SCRIPT"
     ./scripts/pattern/tour.sh
 fi
 # run
