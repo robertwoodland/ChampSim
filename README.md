@@ -4,13 +4,13 @@
 To build ChampSim for use with a BSV predictor, you will need to install the toolchain described in the dissertation.
 Next, change into the directory `branch/bsv/*PRED*/Build` and run `make all_bsim`. Do not be alarmed by the simulation that this starts failing.
 
-Ensure that the file path at `branch/testpred/script.sh` matches that of your newly built Bluesim file.
+Ensure that the file path at `branch/testpred/script.sh` matches that of your newly built Bluesim file, and that the `SCRIPT_LOCATION` in `branch/testpred/testpred.cc` points to this script.
 
 Change back to the top level, and follow the rest of the instructions in this document to build ChampSim. 
 
 Traces can be found [here](https://dpc3.compas.cs.stonybrook.edu/champsim-traces/speccpu/).
 
-We recommend using the parameters `--warmup_instructions 10000000 --simulation_instructions 10000000 *TRACE*`.
+We recommend using the parameters `--warmup_instructions 10000000 --simulation_instructions 10000000 *TRACE*`. You should find this takes only a few minutes to run on most machines.
 
 The config file we use with `config.sh` is `test_config.json`.
 
