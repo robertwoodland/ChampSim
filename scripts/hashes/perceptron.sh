@@ -15,7 +15,6 @@ FILE_NAME="../$UPPER.bsv"
 # 10^6 approx 1.5hrs for all?
 BASE_COMMAND="./bin/champsim --warmup_instructions 10000000 --simulation_instructions 10000000"
 TRACEDIR="traces/"
-# TRACE="401.bzip2-277B.champsimtrace.xz"
 TRACE="403.gcc-17B.champsimtrace.xz"
 
 # New test rig gcc:
