@@ -1,9 +1,36 @@
 .csconfig/
 _configuration.mk
 branch/testpred/src/Build/build_bsim
+*/build_bsim
 branch/testpred/src/Build/dump.vcd
+*/dump.vcd
 branch/testpred/src/Build/mkTestbench_bsim
+*/mkTestbench_bsim
 
+branch/bsv/perceptron/Build/dump.vcd
+branch/bsv/perceptron/Build/build_bsim
+branch/bsv/perceptron/Build/mkTestbench_bsim
+branch/bsv/bht/Build/dump.vcd
+branch/bsv/bht/Build/build_bsim
+branch/bsv/bht/Build/mkTestbench_bsim
+branch/bsv/tour/Build/dump.vcd
+branch/bsv/tour/Build/build_bsim
+branch/bsv/tour/Build/mkTestbench_bsim
+
+*.txt
+# Can ignore text, but include when submitting?
+*.ipynb
+*.png
+*.pdf
+*.xz
+*.vcd
+*.h
+*.cxx
+*.ba
+*.bo
+*_bsim
+*_bsim.so
+*.so
 
 **/__pycache__/
 *.pyc
@@ -23,3 +50,5 @@ vcpkg_installed/
 **/_doxygen
 
 build/*
+
+.vscode/*
